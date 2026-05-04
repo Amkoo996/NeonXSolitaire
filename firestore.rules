@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitive Definition
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Phase 4: Drafting the "Fortress" Rules
+    
+    // Player Profiles
+    function isValidPlayerProfile(data) {
+      return data.keys().hasAll(['name', 'color', 'updatedAt']) &&
+             data.keys().size() <= 5 && // allow optional profileIcon
+             data.name is string && data.name.size() > 0 && data.name.size() <= 64 &&
+             data.color is string && data.color.size() <= 20 &&
+             data.updatedAt == request.time &&
+             (data.keys().hasAny(['profileIcon']) ? (data.profileIcon is string && data.profileIcon.size() <= 8) : true);
+    }
+
+    match /players/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create, update: if isOwner(userId) && isValidPlayerProfile(incoming()) && isValidId(userId);
+    }
+
+    // Leaderboard
+    function isValidLeaderboardEntry(data) {
+      return data.keys().hasAll(['name', 'score', 'color', 'timestamp', 'userId']) &&
+             data.keys().size() == 5 &&
+             data.name is string && data.name.size() <= 64 &&
+             data.score is number && data.score >= 0 &&
+             data.color is string && data.color.size() <= 20 &&
+             data.timestamp == request.time &&
+             data.userId == request.auth.uid;
+    }
+
+    match /leaderboard/{scoreId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidLeaderboardEntry(incoming()) && isValidId(scoreId);
+      allow update, delete: if false;
+    }
+
+    // Rooms & Multiplayer
+    function isValidRoom(data) {
+      return data.keys().hasAll(['status', 'gameType', 'createdAt']) &&
+             data.keys().size() == 3 &&
+             data.status is string && data.status in ['lobby', 'playing', 'finished'] &&
+             data.gameType is string && data.gameType in ['golf'] &&
+             data.createdAt == request.time;
+    }
+
+    function isRoomUpdate(data) {
+      return data.diff(existing()).affectedKeys().hasOnly(['status']) &&
+             data.status is string && data.status in ['lobby', 'playing', 'finished'];
+    }
+
+    match /rooms/{roomId} {
+      allow get: if isSignedIn() && isValidId(roomId);
+      allow create: if isSignedIn() && isValidRoom(incoming()) && isValidId(roomId);
+      allow update: if isSignedIn() && isRoomUpdate(incoming());
+      
+      match /players/{userId} {
+        function isValidRoomPlayer(data) {
+          return data.keys().hasAll(['name', 'score', 'color', 'isReady', 'lastUpdate']) &&
+                 data.keys().size() <= 7 && // allow id and profileIcon
+                 data.name is string && data.name.size() <= 64 &&
+                 data.score is number && data.score >= 0 &&
+                 data.color is string && data.color.size() <= 20 &&
+                 data.isReady is bool &&
+                 data.lastUpdate == request.time &&
+                 (data.keys().hasAny(['id']) ? data.id == request.auth.uid : true) &&
+                 (data.keys().hasAny(['profileIcon']) ? (data.profileIcon is string && data.profileIcon.size() <= 8) : true);
+        }
+
+        allow get, list: if isSignedIn();
+        allow create, update: if isOwner(userId) && isValidRoomPlayer(incoming()) && isValidId(userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

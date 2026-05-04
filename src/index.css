@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&family=Anton&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Anton", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#030303] text-slate-100 overflow-hidden;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  
+  .neon-border-blue {
+    @apply shadow-[0_0_15px_rgba(59,130,246,0.3)] border-blue-500/50;
+  }
+
+  .neon-border-pink {
+    @apply shadow-[0_0_15px_rgba(236,72,153,0.3)] border-pink-500/50;
+  }
+
+  .neon-text-blue {
+    @apply text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)];
+  }
+
+  .neon-text-pink {
+    @apply text-pink-400 drop-shadow-[0_0_8px_rgba(236,72,153,0.5)];
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+}
+
+/* Custom Scrollbar for rankings/lobby */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}

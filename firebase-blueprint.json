@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "LeaderboardEntry": {
+      "title": "Leaderboard Entry",
+      "description": "A high score entry on the global leaderboard.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Player name" },
+        "score": { "type": "number", "description": "Highest score achieved" },
+        "color": { "type": "string", "description": "Player's chosen color hex" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the score was achieved" },
+        "userId": { "type": "string", "description": "The UID of the user who achieved this score" }
+      },
+      "required": ["name", "score", "color", "timestamp", "userId"]
+    },
+    "Room": {
+      "title": "Game Room",
+      "description": "A multiplayer game room.",
+      "type": "object",
+      "properties": {
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation time" },
+        "status": { "type": "string", "enum": ["lobby", "playing", "finished"], "description": "Current room status" },
+        "gameType": { "type": "string", "enum": ["golf", "pickup"], "description": "Type of game being played" }
+      },
+      "required": ["createdAt", "status", "gameType"]
+    },
+    "RoomPlayer": {
+      "title": "Room Player",
+      "description": "A player's status within a specific room.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "User UID" },
+        "name": { "type": "string", "description": "Display name" },
+        "score": { "type": "number", "description": "Current score in this session" },
+        "color": { "type": "string", "description": "Assigned color" },
+        "profileIcon": { "type": "string", "description": "Avatar emoji" },
+        "isReady": { "type": "boolean", "description": "Ready status for lobby" },
+        "lastUpdate": { "type": "string", "format": "date-time", "description": "Last activity timestamp" }
+      },
+      "required": ["name", "score", "color", "isReady", "lastUpdate"]
+    },
+    "PlayerProfile": {
+      "title": "Player Profile",
+      "description": "Global user profile data.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Display name" },
+        "color": { "type": "string", "description": "Chosen profile color" },
+        "profileIcon": { "type": "string", "description": "Avatar emoji" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update time" }
+      },
+      "required": ["name", "color", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/players/{userId}": {
+      "schema": "PlayerProfile",
+      "description": "Root collection for global player profiles."
+    },
+    "/leaderboard/{scoreId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Global leaderboard entries."
+    },
+    "/rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Collection of active game rooms."
+    },
+    "/rooms/{roomId}/players/{userId}": {
+      "schema": "RoomPlayer",
+      "description": "Players currently in a room."
+    }
+  }
+}
