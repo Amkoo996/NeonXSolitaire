@@ -31,7 +31,7 @@ export const Menu = ({ onStartGolf, onRankings, onStartMultiplayer, onSetupProfi
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full max-w-7xl mx-auto bg-[#030303] overflow-hidden relative font-sans">
+    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-[#030303] overflow-hidden relative font-sans">
       {/* Background Atmosphere */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-600/10 blur-[120px] rounded-full animate-pulse" />

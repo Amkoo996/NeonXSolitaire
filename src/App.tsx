@@ -154,7 +154,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-slate-100 selection:bg-blue-500 selection:text-white flex items-center justify-center font-sans overflow-hidden relative">
+    <div className="min-h-screen bg-black text-slate-100 selection:bg-blue-500 selection:text-white flex flex-col font-sans overflow-hidden relative">
       <div className="fixed inset-0 z-0 bg-[radial-gradient(circle_at_center,#0f172a_0%,#020617_100%)]" />
       <div className="fixed inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '64px 64px' }} />
       
@@ -244,7 +244,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.4 }}
-            className="w-full flex justify-center"
+            className="w-full flex flex-col"
           >
             <Menu 
               onStartGolf={handleStartGolf} 
@@ -261,7 +261,7 @@ export default function App() {
              initial={{ opacity: 0, scale: 1.1 }}
              animate={{ opacity: 1, scale: 1 }}
              exit={{ opacity: 0, scale: 0.9 }}
-             className="w-full flex justify-center"
+             className="w-full flex flex-col"
            >
              <Lobby 
                roomId={roomId} 
@@ -277,7 +277,7 @@ export default function App() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full flex justify-center"
+            className="w-full flex flex-col"
           >
             <Rankings onBack={() => setGameState('menu')} currentScore={totalScore} />
           </motion.div>
@@ -290,7 +290,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full flex justify-center"
+            className="w-full flex flex-col"
           >
             <Board 
               onGameOver={() => setGameState('game_over')}

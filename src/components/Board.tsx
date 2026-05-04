@@ -446,7 +446,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   const totalCardsLeft = state.columns.reduce((acc, col) => acc + col.length, 0);
 
   return (
-    <div ref={boardRef} className="w-full max-w-[1024px] h-[100dvh] lg:h-auto lg:aspect-[4/3] bg-[#030303] relative overflow-hidden flex flex-col md:rounded-[3rem] shadow-[0_0_100px_rgba(59,130,246,0.1)] border-x md:border-8 border-white/5 select-none font-sans mx-auto">
+    <div ref={boardRef} className="w-full h-[100dvh] bg-[#030303] relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(59,130,246,0.1)] border-white/5 select-none font-sans">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.15)_0%,transparent_60%)]" />
@@ -605,10 +605,10 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
 
       {/* Main Game Area */}
       <div className="flex-1 w-full flex flex-col items-center justify-center p-2 md:p-4 relative z-10 overflow-hidden">
-          <div className="w-full h-full max-h-[calc(100vh-20rem)] flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center">
             {state.currentRound <= 3 ? (
-               <div className="flex flex-col items-center gap-2 scale-[0.6] sm:scale-[0.8] md:scale-[0.95] lg:scale-100 origin-center transition-transform">
-                  <div className="h-[200px] md:h-[240px] flex justify-center">
+               <div className="flex flex-col items-center gap-2 origin-center transition-transform">
+                  <div className="h-[250px] md:h-[350px] flex justify-center">
                      <Pyramid 
                        cards={state.columns[0]} 
                        onCardClick={(card, idx) => handleCardClick(card, 0, idx)} 
@@ -617,7 +617,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                        pyramidIndex={0}
                      />
                   </div>
-                  <div className="h-[200px] md:h-[240px] flex justify-center gap-6 md:gap-12">
+                  <div className="h-[250px] md:h-[350px] flex justify-center gap-6 md:gap-12">
                      <Pyramid 
                        cards={state.columns[1]} 
                        onCardClick={(card, idx) => handleCardClick(card, 1, idx)} 
@@ -635,7 +635,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                   </div>
                </div>
             ) : (
-              <div className={cn("grid w-full h-full items-center justify-items-center gap-x-1 md:gap-x-2 content-center scale-[0.7] sm:scale-[0.85] md:scale-100 origin-center transition-transform", 
+              <div className={cn("grid w-full h-full items-center justify-items-center gap-x-1 md:gap-x-4 content-center origin-center transition-transform", 
                 state.currentRound >= 10 ? "grid-cols-8" : 
                 state.currentRound >= 7 ? "grid-cols-7" : 
                 "grid-cols-5")}>
@@ -645,7 +645,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                     initial={{ opacity: 0, scale: 0.8, y: 50 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="relative h-[200px] md:h-[250px] w-full flex justify-center"
+                    className="relative h-[250px] md:h-[400px] w-full flex justify-center"
                   >
                     <LayoutContainer 
                       pileIdx={idx} 
