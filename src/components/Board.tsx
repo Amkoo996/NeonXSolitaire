@@ -446,7 +446,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   const totalCardsLeft = state.columns.reduce((acc, col) => acc + col.length, 0);
 
   return (
-    <div ref={boardRef} className="w-full max-w-[1024px] min-h-[90vh] md:aspect-[4/3] bg-[#030303] relative overflow-hidden flex flex-col md:rounded-[3rem] shadow-[0_0_100px_rgba(59,130,246,0.1)] border-x md:border-8 border-white/5 select-none font-sans mx-auto">
+    <div ref={boardRef} className="w-full max-w-[1024px] h-screen lg:h-auto lg:aspect-[4/3] bg-[#030303] relative overflow-hidden flex flex-col md:rounded-[3rem] shadow-[0_0_100px_rgba(59,130,246,0.1)] border-x md:border-8 border-white/5 select-none font-sans mx-auto">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.15)_0%,transparent_60%)]" />
@@ -463,7 +463,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       <ScorePop events={state.scoreEvents} />
 
       {/* HUD: FIXED TOP */}
-      <div className="h-20 md:h-24 w-full flex items-center justify-between px-4 md:px-12 z-30 bg-[#030303] border-b border-white/5 shrink-0">
+      <div className="h-14 md:h-24 w-full flex items-center justify-between px-4 md:px-12 z-30 bg-[#030303] border-b border-white/5 shrink-0">
         <div className="flex items-center gap-4 md:gap-8">
            <div className="flex flex-col">
              <span className="text-[8px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Phase</span>
@@ -472,10 +472,10 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
              </span>
            </div>
            
-           <div className="h-8 md:h-12 w-px bg-white/10" />
+           <div className="h-6 md:h-12 w-px bg-white/10" />
 
            <div className="flex flex-col">
-             <span className="text-[8px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Credits</span>
+             <span className="text-[8px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Score</span>
              <span className="text-xl md:text-3xl font-display text-amber-500 italic tabular-nums">
                {state.score.toLocaleString()}
              </span>
@@ -483,28 +483,23 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
         </div>
 
         <div className="flex items-center gap-2 md:gap-6">
-           <div className="hidden lg:flex flex-col items-center px-4 py-1.5 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-[8px] font-black uppercase text-blue-400/60 tracking-widest mb-0.5">Board</span>
-              <span className="text-lg font-display text-white tabular-nums">{totalCardsLeft}</span>
-           </div>
-
-           <div className="flex flex-col items-center px-3 md:px-4 py-1.5 rounded-xl bg-white/5 border border-white/5">
+           <div className="flex flex-col items-center px-2 md:px-4 py-1 rounded-lg md:rounded-xl bg-white/5 border border-white/5">
               <span className="text-[8px] font-black uppercase text-blue-400/60 tracking-widest mb-1 hidden md:block">Diamonds</span>
-              <div className="flex gap-1">
+              <div className="flex gap-0.5 md:gap-1">
                  {diamonds.map((d, i) => (
-                   <div key={i} className={cn("w-2 h-2 md:w-3 md:h-3 rotate-45 border border-blue-400/30", d ? "bg-cyan-400 shadow-[0_0_8px_cyan]" : "bg-white/5")} />
+                   <div key={i} className={cn("w-1.5 h-1.5 md:w-3 md:h-3 rotate-45 border border-blue-400/30", d ? "bg-cyan-400 shadow-[0_0_8px_cyan]" : "bg-white/5")} />
                  ))}
               </div>
            </div>
 
-           <div className="flex flex-col items-end w-24 md:w-40 relative">
+           <div className="flex flex-col items-end w-20 md:w-40 relative">
               <div className="flex items-center gap-2 relative">
-                 <Timer size={16} className={cn("transition-colors z-10", state.timer < 30 ? "text-red-500 animate-pulse" : "text-blue-400")} />
-                 <span className={cn("text-xl md:text-3xl font-display italic tabular-nums z-10", state.timer < 15 ? "text-red-500 scale-110 drop-shadow-[0_0_10px_red]" : state.timer < 30 ? "text-red-500" : "text-white")}>
+                 <Timer size={14} className={cn("transition-colors z-10", state.timer < 30 ? "text-red-500 animate-pulse" : "text-blue-400")} />
+                 <span className={cn("text-lg md:text-3xl font-display italic tabular-nums z-10", state.timer < 15 ? "text-red-500 scale-110 drop-shadow-[0_0_10px_red]" : state.timer < 30 ? "text-red-500" : "text-white")}>
                     {isNaN(state.timer) ? "0:00" : `${Math.floor(state.timer / 60)}:${(state.timer % 60).toString().padStart(2, '0')}`}
                  </span>
               </div>
-              <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
+              <div className="w-full h-1 bg-white/10 rounded-full mt-0.5 overflow-hidden">
                  <motion.div 
                    initial={false}
                    animate={{ 
@@ -516,8 +511,8 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
               </div>
            </div>
            
-           <button onClick={onMenu} className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/5 text-slate-400 flex items-center justify-center hover:bg-red-500/20 transition-all border border-white/10 hover:border-red-500/50 group">
-              <LogOut size={18} />
+           <button onClick={onMenu} className="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-white/5 text-slate-400 flex items-center justify-center hover:bg-red-500/20 transition-all border border-white/10 hover:border-red-500/50 group">
+              <LogOut size={16} />
            </button>
         </div>
       </div>
@@ -668,98 +663,89 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       </div>
 
       {/* Command Hub: FIXED BOTTOM */}
-      <div className="h-32 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-30 relative overflow-hidden shrink-0">
+      <div className="h-24 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-30 relative overflow-hidden shrink-0">
           <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 to-transparent pointer-events-none" />
           
           {/* Multiplayer Feed */}
-          <div className="flex flex-col gap-2 w-64">
-             <span className="text-[10px] font-black text-blue-400/40 uppercase tracking-[0.2em] mb-1">Live Rivals</span>
-             <div className="flex -space-x-4">
-                {state.opponents.map((opp, i) => (
+          <div className="absolute left-4 top-0 bottom-0 flex flex-col justify-center pointer-events-none hidden md:flex">
+             <AnimatePresence>
+                {state.opponents.slice(0, 3).map((opp, i) => (
                   <motion.div 
                     key={opp.id}
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    className="w-12 h-12 rounded-full border-2 bg-slate-900 flex items-center justify-center text-xl relative group"
-                    style={{ borderColor: opp.color || '#fff' }}
+                    className="flex items-center gap-2 mb-1"
                   >
-                    <span>{'🐱🐶🦊🦁🐯'[i % 5]}</span>
-                    <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 bg-black/80 text-[8px] text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                       {opp.name}: {opp.score}
-                    </div>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: opp.color || '#fff' }} />
+                    <span className="text-[8px] font-black text-white/40 uppercase tracking-widest whitespace-nowrap">
+                      {opp.name}: {opp.score}
+                    </span>
                   </motion.div>
                 ))}
-             </div>
+             </AnimatePresence>
           </div>
 
-          {/* Core Mechanics */}
-          <div className="flex items-center gap-16">
-              {/* Deck */}
-              <div className="relative group" onClick={handleStockClick}>
-                 <div className="absolute inset-0 bg-blue-600 rounded-lg -rotate-6 group-hover:-rotate-12 transition-transform opacity-30 translate-y-2 blur-[2px]" />
-                 <Card card={{ id: 'back', suit: 'hearts', rank: 'A', value: 1, isFaceUp: false }} className="relative z-10 border-blue-500/50 shadow-[0_0_40px_rgba(59,130,246,0.4)]" isClickable={false} />
-                 <div className="absolute -top-6 -right-6 w-14 h-14 bg-slate-900 border-4 border-blue-500 rounded-full flex items-center justify-center text-white font-black text-xl shadow-[0_0_20px_rgba(59,130,246,0.6)] z-20 tabular-nums">
-                    {state.stock.length}
-                 </div>
+          <div className="flex items-center gap-6 md:gap-12 relative z-10 mx-auto">
+            {/* Main Pile */}
+            <div className="flex items-center gap-2 md:gap-4">
+              <div 
+                className="relative cursor-pointer group active:scale-95 transition-transform"
+                onClick={handleStockClick}
+              >
+                  <Card card={{ id: 'back', suit: 'hearts', rank: 'A', value: 1, isFaceUp: false }} isClickable={false} />
+                  <div className="absolute -top-3 -right-3 w-7 h-7 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center border-4 border-[#030303] shadow-lg">
+                    <span className="text-[10px] md:text-sm font-black text-white tabular-nums">{state.stock.length}</span>
+                  </div>
               </div>
 
               {/* Slots */}
-              <div className="flex items-center gap-12">
-                  <div className="flex flex-col items-center gap-3">
-                     <div ref={foundationRef0} className="w-28 h-40 bg-white/5 rounded-2xl border-2 border-white/10 flex items-center justify-center relative overflow-hidden group">
-                        <AnimatePresence mode="popLayout">
-                          {state.foundations[0].length > 0 && (
-                            <motion.div
-                              key={state.foundations[0][state.foundations[0].length - 1].id}
-                              initial={{ y: 20, opacity: 0, rotate: 5 }}
-                              animate={{ y: 0, opacity: 1, rotate: 0 }}
-                              className="w-full h-full"
-                            >
-                              <Card 
-                                card={state.foundations[0][state.foundations[0].length - 1]} 
-                                isClickable={false}
-                                className="w-full h-full border-0 rounded-none bg-transparent"
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                        <div className="absolute inset-x-0 bottom-0 h-1 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
-                     </div>
-                     <span className="text-[10px] font-black text-blue-400/40 uppercase tracking-widest">Primary</span>
+              <div className="flex items-center gap-3 md:gap-8">
+                  <div ref={foundationRef0} className="w-14 h-20 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
+                     <AnimatePresence mode="popLayout">
+                        {state.foundations[0].length > 0 && (
+                          <motion.div
+                            key={state.foundations[0][state.foundations[0].length - 1].id}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="w-full h-full"
+                          >
+                            <Card 
+                              card={state.foundations[0][state.foundations[0].length - 1]} 
+                              isClickable={false}
+                              className="w-full h-full border-0 rounded-none bg-transparent"
+                            />
+                          </motion.div>
+                        )}
+                     </AnimatePresence>
                   </div>
 
-                  <div className="flex flex-col items-center gap-3">
-                     <div ref={foundationRef1} className={cn(
-                       "w-28 h-40 rounded-2xl border-2 transition-all duration-500 flex items-center justify-center relative overflow-hidden",
-                       state.slot2Unlocked ? "bg-white/10 border-amber-500/50 shadow-[0_0_25px_rgba(245,158,11,0.2)]" : "bg-black/40 border-white/5 grayscale"
-                     )}>
-                        <AnimatePresence mode="popLayout">
-                          {state.foundations[1].length > 0 ? (
-                            <motion.div
-                              key={state.foundations[1][state.foundations[1].length - 1].id}
-                              initial={{ y: 20, opacity: 0, scale: 0.8 }}
-                              animate={{ y: 0, opacity: 1, scale: 1 }}
-                              className="w-full h-full"
-                            >
-                              <Card 
-                                card={state.foundations[1][state.foundations[1].length - 1]} 
-                                isClickable={false}
-                                className="w-full h-full border-0 rounded-none bg-transparent"
-                              />
-                            </motion.div>
-                          ) : (
-                            <div className="flex flex-col items-center text-white/10 gap-2">
-                               {state.slot2Unlocked ? <SkipForward size={32} className="text-amber-500 animate-pulse" /> : <span className="text-2xl">🔒</span>}
-                            </div>
-                          )}
-                        </AnimatePresence>
-                        {state.slot2Unlocked && (
-                           <div className="absolute inset-x-0 bottom-0 h-1 bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
+                  <div ref={foundationRef1} className={cn(
+                    "w-14 h-20 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
+                    state.slot2Unlocked ? "bg-white/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]" : "bg-black/40 border-white/5 grayscale"
+                  )}>
+                     <AnimatePresence mode="popLayout">
+                        {state.foundations[1].length > 0 ? (
+                          <motion.div
+                            key={state.foundations[1][state.foundations[1].length - 1].id}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="w-full h-full"
+                          >
+                            <Card 
+                              card={state.foundations[1][state.foundations[1].length - 1]} 
+                              isClickable={false}
+                              className="w-full h-full border-0 rounded-none bg-transparent"
+                            />
+                          </motion.div>
+                        ) : (
+                          <div className="text-white/10 text-xs">
+                             {state.slot2Unlocked ? <SkipForward size={16} className="text-amber-500 animate-pulse" /> : "🔒"}
+                          </div>
                         )}
-                     </div>
-                     <span className="text-[10px] font-black text-amber-500/40 uppercase tracking-widest">Bonus</span>
+                     </AnimatePresence>
                   </div>
               </div>
+            </div>
           </div>
 
           {/* Fusion Meter */}
@@ -794,8 +780,9 @@ const LayoutContainer = React.memo(({ pileIdx, round, cards, onCardClick, onDrag
   boardRef: React.RefObject<HTMLDivElement>
 }) => {
   const getCardStyle = (idx: number) => {
-    // Dynamic vertical spacing based on card count to fit the container
-    const spacing = cards.length > 8 ? 20 : cards.length > 5 ? 25 : 30;
+    // Dynamic vertical spacing based on card count and screen size to fit the container
+    const isMobile = window.innerWidth < 768;
+    const spacing = isMobile ? 15 : (cards.length > 8 ? 20 : cards.length > 5 ? 25 : 30);
     const baseTop = idx * spacing;
     
     if (round >= 4 && round <= 6) {
