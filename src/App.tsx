@@ -30,11 +30,19 @@ export default function App() {
     const roomRef = doc(db, 'rooms', roomId);
     const unsub = onSnapshot(roomRef, (snap) => {
       const data = snap.data();
-      if (data?.currentRound && data.currentRound !== currentRound) {
+      if (!data) return;
+      
+      if (data.currentRound !== undefined && data.currentRound !== currentRound) {
         setCurrentRound(data.currentRound);
+        // If the round increased while we were in a sub-state, move to playing
+        if (gameState === 'round_over' || gameState === 'lobby') {
+          setGameState('playing');
+        }
       }
-      if (data?.status === 'playing' && gameState === 'lobby') {
+      
+      if (data.status === 'playing' && gameState === 'lobby') {
         setGameState('playing');
+        if (data.currentRound) setCurrentRound(data.currentRound);
       }
     });
     return () => unsub();
@@ -145,12 +153,28 @@ export default function App() {
     }
   };
 
-  const handleNextRound = () => {
+  const handleNextRound = async () => {
     if (gameState === 'game_over') {
       setGameState('rankings');
       return;
     }
-    setCurrentRound(prev => prev + 1);
+
+    const nextRound = currentRound + 1;
+
+    if (roomId && auth.currentUser) {
+      const roomRef = doc(db, 'rooms', roomId);
+      try {
+        await setDoc(roomRef, { 
+          currentRound: nextRound,
+          status: 'playing',
+          lastUpdate: serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.error('Room progression error', err);
+      }
+    }
+
+    setCurrentRound(nextRound);
     setGameState('playing');
   };
 

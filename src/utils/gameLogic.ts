@@ -44,33 +44,29 @@ export const deal = (currentRound: number = 1, seed?: number) => {
   let numPiles = 0;
 
   if (currentRound === 1) {
-    // Single Pyramid: 15 cards (1-2-3-4-5) - simplified for mobile
-    numPiles = 10; // We'll treat every card as a potential "pile" or position for layout
+    // Pyramid: 15 cards (1-2-3-4-5) = 15 cards
+    numPiles = 15; 
     cardsToDeploy = 15;
   } else if (currentRound === 2) {
     // Crescent: 18 cards
     numPiles = 9;
     cardsToDeploy = 18;
   } else if (currentRound === 3) {
-    // Twin Peaks: 2 Pyramids (6+6) = 12 cards
+    // Twin Peaks: 12 cards
     numPiles = 12;
     cardsToDeploy = 12;
   } else if (currentRound === 4) {
-    // Star Nova
+    // Star: 16 cards
     numPiles = 8;
     cardsToDeploy = 16;
-  } else if (currentRound <= 6) {
-    // Columns
+  } else if (currentRound === 5) {
+    // Columns: 20 cards
     numPiles = 5;
     cardsToDeploy = 20; 
-  } else if (currentRound <= 9) {
-    // Wide Grid
-    numPiles = 7;
-    cardsToDeploy = 21;
   } else {
-    // Master Chaos
-    numPiles = 10;
-    cardsToDeploy = 24;
+    // Dynamic
+    numPiles = Math.min(10, 5 + Math.floor(currentRound / 2));
+    cardsToDeploy = Math.min(30, 15 + currentRound * 2);
   }
 
   columns = Array.from({ length: numPiles }, () => []);
@@ -79,9 +75,7 @@ export const deal = (currentRound: number = 1, seed?: number) => {
     const card = deck.pop()!;
     if (!card) break;
     const colIdx = i % numPiles;
-    
-    // In formation mode, usually the top card of each logical "pile" is open
-    // We'll calculate face-up status in the component or set it here for the last layer
+    card.isFaceUp = false; // Ensure all are face down initially
     columns[colIdx].push(card);
   }
 

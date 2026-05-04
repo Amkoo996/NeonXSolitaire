@@ -374,14 +374,15 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
     const topCard = newStock.pop()!;
     topCard.isFaceUp = true;
 
-    const newFoundations = [[...state.foundations[0], topCard], []];
+    // Standard Golf: Put drawn card ON TOP of the first foundation slot
+    const newFoundations = [[...state.foundations[0], topCard], state.foundations[1]];
     
     setConsecutiveMoves(0);
     setState({
       ...state,
       stock: newStock,
       foundations: newFoundations,
-      slot2Unlocked: false
+      slot2Unlocked: state.slot2Unlocked // Keep slot 2 status
     });
   };
 
@@ -717,121 +718,100 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
     let x = 50;
     let y = 50;
     let rotate = 0;
-    let scale = 1;
+    let scale = isMobile ? 1.15 : 1; // Slightly bigger cards on mobile
 
-    const stackOffset = cardIdx * (isMobile ? 8 : 12);
+    // Stack offset: smaller on mobile to keep things compact horizontally but visible vertically
+    const stackOffset = cardIdx * (isMobile ? 10 : 15);
     
     if (round === 1) {
-      // Pyramid Pattern: 10 piles (arranged in 4 rows: 1, 2, 3, 4)
-      const rows = [1, 2, 3, 4];
-      let currentPile = 0;
+      // Classic Pyramid (1-2-3-4-5) - total 15 cards
+      const rows = [1, 2, 3, 4, 5];
       let row = 0;
       let colInRow = 0;
-      
+      let pileCount = 0;
       for (let r = 0; r < rows.length; r++) {
-        if (pileIdx >= currentPile && pileIdx < currentPile + rows[r]) {
+        if (pileIdx >= pileCount && pileIdx < pileCount + rows[r]) {
           row = r;
-          colInRow = pileIdx - currentPile;
+          colInRow = pileIdx - pileCount;
           break;
         }
-        currentPile += rows[r];
+        pileCount += rows[r];
       }
-      
-      const rowWidth = rows[row] * 20;
-      x = 50 + (colInRow * 20) - (rowWidth / 2) + 10;
-      y = 15 + row * 22;
+      x = 50 + (colInRow * (isMobile ? 18 : 15)) - (rows[row] * (isMobile ? 9 : 7.5)) + (isMobile ? 9 : 7.5);
+      y = 10 + row * (isMobile ? 18 : 15);
     } else if (round === 2) {
-      // Crescent Moon Pattern
+      // Horseshoe Crescent
       const angleStep = Math.PI / (totalPiles - 1);
-      const angle = pileIdx * angleStep - Math.PI;
-      const radius = isMobile ? 35 : 40;
-      x = 50 + Math.cos(angle) * radius;
-      y = 55 + Math.sin(angle) * (radius * 0.8);
+      const angle = (pileIdx * angleStep) - Math.PI;
+      const radiusX = isMobile ? 42 : 45;
+      const radiusY = isMobile ? 35 : 40;
+      x = 50 + Math.cos(angle) * radiusX;
+      y = 55 + Math.sin(angle) * radiusY;
       rotate = (angle * 180) / Math.PI + 90;
     } else if (round === 3) {
-      // Twin Peaks (Double Pyramid)
+      // Twin Peaks
       const isLeft = pileIdx < totalPiles / 2;
       const localIdx = isLeft ? pileIdx : pileIdx - totalPiles / 2;
-      const rows = [1, 2, 3]; // 1+2+3 = 6 per peak
-      let row = 0;
-      let colInRow = 0;
-      let current = 0;
+      const rows = [1, 2, 3]; // 6 per peak
+      let row = 0, colInRow = 0, count = 0;
       for (let r = 0; r < rows.length; r++) {
-        if (localIdx >= current && localIdx < current + rows[r]) {
-          row = r; colInRow = localIdx - current; break;
+        if (localIdx >= count && localIdx < count + rows[r]) {
+          row = r; colInRow = localIdx - count; break;
         }
-        current += rows[r];
+        count += rows[r];
       }
-      x = (isLeft ? 25 : 75) + (colInRow * 15) - (rows[row] * 7.5) + 7.5;
-      y = 20 + row * 25;
+      x = (isLeft ? 25 : 75) + (colInRow * (isMobile ? 14 : 12)) - (rows[row] * (isMobile ? 7 : 6)) + (isMobile ? 7 : 6);
+      y = 15 + row * (isMobile ? 22 : 18);
     } else if (round === 4) {
-      // Star Nova
+      // Radiant Star
       const angle = (pileIdx / totalPiles) * Math.PI * 2;
-      const dist = pileIdx % 2 === 0 ? 30 : 15;
+      const dist = (pileIdx % 2 === 0) ? (isMobile ? 38 : 42) : (isMobile ? 20 : 25);
       x = 50 + Math.cos(angle) * dist;
-      y = 50 + Math.sin(angle) * dist;
+      y = 50 + Math.sin(angle) * (dist * 0.8);
       rotate = (angle * 180) / Math.PI;
-    } else if (round === 5 || round === 8) {
-      // Organized Columns
-      const spacing = 90 / (totalPiles - 1);
-      x = 5 + pileIdx * spacing;
-      y = 25;
-    } else if (round === 6) {
-      // Wave Pattern
-      const spacing = 100 / (totalPiles - 1);
-      x = pileIdx * spacing;
-      y = 40 + Math.sin(pileIdx * 0.8) * 20;
-      rotate = Math.cos(pileIdx * 0.8) * 20;
-    } else if (round === 7) {
-      // Orbital Ring
-      const angle = (pileIdx / totalPiles) * Math.PI * 2;
-      x = 50 + Math.cos(angle) * 35;
-      y = 50 + Math.sin(angle) * 35;
-      rotate = (angle * 180) / Math.PI;
-    } else if (round === 9) {
-      // Diamond Shape
-      const coords = [
-        [50, 10], [30, 30], [70, 30], [15, 50], [50, 50], [85, 50], [30, 70], [70, 70], [50, 90]
-      ];
-      const pt = coords[pileIdx % coords.length];
-      x = pt[0]; y = pt[1];
+    } else if (round === 5) {
+      // Parallel Beams
+      const spacing = 100 / (totalPiles + 1);
+      x = (pileIdx + 1) * spacing;
+      y = 20;
     } else {
-      // Chaos / Random-ish
-      const seed = pileIdx * 123.45;
-      x = 10 + (Math.sin(seed) * 0.5 + 0.5) * 80;
-      y = 10 + (Math.cos(seed * 0.7) * 0.5 + 0.5) * 80;
-      rotate = (Math.sin(seed * 2) * 20);
+      // Wave / Grid mix
+      const rows = Math.ceil(totalPiles / 5);
+      const cols = Math.min(totalPiles, 5);
+      const rowIdx = Math.floor(pileIdx / cols);
+      const colIdx = pileIdx % cols;
+      
+      const xSpacing = 100 / (cols + 1);
+      const ySpacing = 60 / (rows + 1);
+      
+      x = (colIdx + 1) * xSpacing;
+      y = 20 + (rowIdx * ySpacing) + Math.sin(colIdx * 0.5) * 5;
     }
 
     return { 
       left: `${x}%`, 
       top: `${y}%`, 
       transform: `translate(-50%, ${stackOffset}px) rotate(${rotate}deg) scale(${scale})`,
-      zIndex: 10 + cardIdx
+      zIndex: 10 + (pileIdx * 5) + cardIdx // Ensure consistent layering
     };
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full max-w-[95vw] max-h-[60vh] mx-auto">
+    <div ref={containerRef} className="relative w-full h-[60vh] md:h-[70vh] max-w-[100vw] mx-auto overflow-visible">
        {columns.map((pile, pIdx) => (
-         <React.Fragment key={`pile-${pIdx}`}>
+         <React.Fragment key={`p-${pIdx}`}>
            {pile.map((card, cIdx) => (
              <motion.div
                key={card.id}
                className="absolute"
-               initial={{ opacity: 0, scale: 0, x: -100, y: -100 }}
-               animate={{ 
-                 opacity: 1, 
-                 scale: 1,
-                 x: 0,
-                 y: 0
-               }}
+               initial={{ opacity: 0, scale: 0, x: (pIdx - columns.length/2) * 50 }}
+               animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
                style={getPosition(pIdx, cIdx, columns.length)}
                transition={{ 
                  type: "spring", 
-                 stiffness: 260, 
-                 damping: 20, 
-                 delay: pIdx * 0.05 + cIdx * 0.02 
+                 damping: 25, 
+                 stiffness: 200, 
+                 delay: pIdx * 0.04 + cIdx * 0.02 
                }}
              >
                <Card 
@@ -839,8 +819,10 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
                  onClick={() => onCardClick(card, pIdx, cIdx)}
                  isClickable={card.isFaceUp && cIdx === pile.length - 1}
                  className={cn(
-                   "transition-shadow duration-300",
-                   card.isFaceUp && cIdx === pile.length - 1 ? "shadow-[0_0_20px_rgba(59,130,246,0.6)] cursor-pointer" : "brightness-[0.8]"
+                   "transition-all duration-300",
+                   card.isFaceUp && cIdx === pile.length - 1 
+                     ? "shadow-[0_0_25px_rgba(59,130,246,0.5)] cursor-pointer" 
+                     : "brightness-[0.7] opacity-95"
                  )}
                  drag={card.isFaceUp && cIdx === pile.length - 1}
                  onDragEnd={(e, info) => onDragEnd(e, info, card, pIdx, cIdx)}
