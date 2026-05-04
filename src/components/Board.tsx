@@ -463,7 +463,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       <ScorePop events={state.scoreEvents} />
 
       {/* HUD: FIXED TOP */}
-      <div className="h-14 md:h-24 w-full flex items-center justify-between px-4 md:px-12 z-30 bg-[#030303] border-b border-white/5 shrink-0">
+      <div className="h-10 md:h-24 w-full flex items-center justify-between px-3 md:px-12 z-30 bg-[#030303] border-b border-white/5 shrink-0">
         <div className="flex items-center gap-4 md:gap-8">
            <div className="flex flex-col">
              <span className="text-[8px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Phase</span>
@@ -604,11 +604,11 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       </AnimatePresence>
 
       {/* Main Game Area */}
-      <div className="flex-1 w-full flex flex-col items-center justify-center p-2 md:p-4 relative z-10 overflow-hidden">
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-0 md:p-4 relative z-10 overflow-hidden">
           <div className="w-full h-full flex items-center justify-center">
             {state.currentRound <= 3 ? (
-               <div className="flex flex-col items-center gap-2 origin-center transition-transform">
-                  <div className="h-[250px] md:h-[350px] flex justify-center">
+               <div className="flex flex-col items-center gap-1 origin-center transition-transform scale-110 md:scale-100">
+                  <div className="h-[200px] md:h-[350px] flex justify-center">
                      <Pyramid 
                        cards={state.columns[0]} 
                        onCardClick={(card, idx) => handleCardClick(card, 0, idx)} 
@@ -617,7 +617,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                        pyramidIndex={0}
                      />
                   </div>
-                  <div className="h-[250px] md:h-[350px] flex justify-center gap-6 md:gap-12">
+                  <div className="h-[200px] md:h-[350px] flex justify-center gap-2 md:gap-12">
                      <Pyramid 
                        cards={state.columns[1]} 
                        onCardClick={(card, idx) => handleCardClick(card, 1, idx)} 
@@ -635,7 +635,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                   </div>
                </div>
             ) : (
-              <div className={cn("grid w-full h-full items-center justify-items-center gap-x-1 md:gap-x-4 content-center origin-center transition-transform", 
+              <div className={cn("grid w-full h-full items-center justify-items-center gap-x-0.5 md:gap-x-4 content-center origin-center transition-transform", 
                 state.currentRound >= 10 ? "grid-cols-8" : 
                 state.currentRound >= 7 ? "grid-cols-7" : 
                 "grid-cols-5")}>
@@ -663,7 +663,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       </div>
 
       {/* Command Hub: FIXED BOTTOM */}
-      <div className="h-24 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-30 relative overflow-hidden shrink-0">
+      <div className="h-16 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-30 relative overflow-hidden shrink-0">
           <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 to-transparent pointer-events-none" />
           
           {/* Multiplayer Feed */}
@@ -693,14 +693,14 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                 onClick={handleStockClick}
               >
                   <Card card={{ id: 'back', suit: 'hearts', rank: 'A', value: 1, isFaceUp: false }} isClickable={false} />
-                  <div className="absolute -top-3 -right-3 w-7 h-7 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center border-4 border-[#030303] shadow-lg">
-                    <span className="text-[10px] md:text-sm font-black text-white tabular-nums">{state.stock.length}</span>
+                  <div className="absolute -top-2 -right-2 w-5 h-5 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center border-2 md:border-4 border-[#030303] shadow-lg">
+                    <span className="text-[8px] md:text-sm font-black text-white tabular-nums">{state.stock.length}</span>
                   </div>
               </div>
 
               {/* Slots */}
-              <div className="flex items-center gap-3 md:gap-8">
-                  <div ref={foundationRef0} className="w-20 h-28 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
+              <div className="flex items-center gap-2 md:gap-8">
+                  <div ref={foundationRef0} className="w-14 h-20 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
                      <AnimatePresence mode="popLayout">
                         {state.foundations[0].length > 0 && (
                           <motion.div
@@ -720,7 +720,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                   </div>
 
                   <div ref={foundationRef1} className={cn(
-                    "w-20 h-28 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
+                    "w-14 h-20 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
                     state.slot2Unlocked ? "bg-white/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]" : "bg-black/40 border-white/5 grayscale"
                   )}>
                      <AnimatePresence mode="popLayout">
@@ -782,25 +782,25 @@ const LayoutContainer = React.memo(({ pileIdx, round, cards, onCardClick, onDrag
   const getCardStyle = (idx: number) => {
     // Dynamic vertical spacing based on card count and screen size to fit the container
     const isMobile = window.innerWidth < 768;
-    const spacing = isMobile ? 15 : (cards.length > 8 ? 20 : cards.length > 5 ? 25 : 30);
-    const baseTop = idx * spacing;
+    const spacing = isMobile ? 10 : (cards.length > 8 ? 20 : cards.length > 5 ? 25 : 30);
+    const baseTop = idx * (isMobile ? 7 : spacing);
     
     if (round >= 4 && round <= 6) {
       const angle = (pileIdx - 2) * 5; 
-      const xOffset = Math.sin(idx * 0.2) * 10 + (pileIdx - 2) * 10;
+      const xOffset = Math.sin(idx * 0.2) * 4 + (pileIdx - 2) * 4;
       return { top: baseTop, left: xOffset, rotate: angle };
     } else if (round >= 7 && round <= 9) {
-      const wave = Math.sin((pileIdx + idx) * 0.5) * 20;
-      return { top: baseTop, left: wave, rotate: idx * 2 };
+      const wave = Math.sin((pileIdx + idx) * 0.5) * 6;
+      return { top: baseTop, left: wave, rotate: idx * 0.5 };
     } else if (round >= 10) {
-      return { top: idx * 25, left: 0, rotate: 0 };
+      return { top: idx * (isMobile ? 12 : 25), left: 0, rotate: 0 };
     }
     
     return { top: baseTop, left: 0, rotate: 0 };
   };
 
   return (
-    <div className="relative w-[110px] h-[340px]">
+    <div className="relative w-[45px] md:w-[110px] h-[340px]">
        {cards.map((card, i) => (
          <motion.div
            key={card.id}
@@ -841,7 +841,7 @@ const Pyramid = React.memo(({ cards, onCardClick, onDragEnd, boardRef, pyramidIn
 }) => {
   const renderCardAt = (originalIndex: number) => {
     const card = cards.find(c => c.originalIdx === originalIndex);
-    if (!card) return <div className="w-24 h-36 opacity-0" />; 
+    if (!card) return <div className="w-10 h-15 opacity-0" />; 
     
     return (
         <motion.div
@@ -864,17 +864,17 @@ const Pyramid = React.memo(({ cards, onCardClick, onDragEnd, boardRef, pyramidIn
   };
 
   return (
-    <div className="relative w-[320px] h-[250px]">
+    <div className="relative w-[210px] md:w-[320px] h-[170px] md:h-[250px]">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 z-0">
         {renderCardAt(0)}
       </div>
       
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 flex gap-10 z-10 w-full justify-center">
+      <div className="absolute top-6 md:top-16 left-1/2 -translate-x-1/2 flex gap-1 md:gap-10 z-10 w-full justify-center">
         {renderCardAt(1)}
         {renderCardAt(2)}
       </div>
  
-      <div className="absolute top-32 left-1/2 -translate-x-1/2 flex gap-10 z-20 w-full justify-center">
+      <div className="absolute top-12 md:top-32 left-1/2 -translate-x-1/2 flex gap-1 md:gap-10 z-20 w-full justify-center">
         {renderCardAt(3)}
         {renderCardAt(4)}
         {renderCardAt(5)}

@@ -33,7 +33,7 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
   if (!card.isFaceUp) {
     return (
       <div className={cn(
-        "w-12 h-18 md:w-24 md:h-36 rounded-lg md:rounded-2xl bg-blue-600 border-2 border-white/20 shadow-lg relative overflow-hidden group",
+        "w-9 h-14 md:w-24 md:h-36 rounded-lg md:rounded-2xl bg-blue-600 border-2 border-white/20 shadow-lg relative overflow-hidden group",
         className
       )}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_80%)]" />
@@ -66,7 +66,7 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
       whileTap={isClickable && onClick ? { scale: 0.95 } : {}}
       onClick={isClickable ? onClick : undefined}
       className={cn(
-        "w-12 h-18 md:w-24 md:h-36 bg-white rounded-lg md:rounded-2xl border flex flex-col items-center justify-between p-1.5 md:p-3 relative select-none overflow-hidden",
+        "w-9 h-14 md:w-24 md:h-36 bg-white rounded-lg md:rounded-2xl border flex flex-col items-center justify-between p-1 md:p-3 relative select-none overflow-hidden",
         getBorderColor(),
         isClickable && onClick ? "cursor-pointer" : "cursor-default",
         className

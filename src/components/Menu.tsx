@@ -93,16 +93,16 @@ export const Menu = ({ onStartGolf, onRankings, onStartMultiplayer, onSetupProfi
            <span className="text-blue-400 text-[9px] font-black uppercase tracking-[0.5em]">System.Ready()</span>
         </motion.div>
         
-        <h1 className="text-7xl md:text-[12rem] font-display text-white mb-2 leading-none tracking-tighter relative group">
+        <h1 className="text-6xl md:text-[12rem] font-display text-white mb-2 leading-none tracking-tighter relative group">
           <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-blue-500 drop-shadow-[0_0_50px_rgba(59,130,246,0.3)]">NEON</span>
-          <span className="text-blue-500 ml-4 group-hover:neon-text-pink transition-all duration-700">X</span>
+          <span className="text-blue-500 ml-2 md:ml-4 group-hover:neon-text-pink transition-all duration-700">X</span>
         </h1>
         
-        <p className="text-blue-400/40 text-sm md:text-xl mb-16 max-w-xl font-black tracking-[0.2em] uppercase italic bg-gradient-to-r from-transparent via-blue-400/10 to-transparent py-2 border-y border-blue-500/5">
+        <p className="text-blue-400/40 text-[10px] md:text-xl mb-12 md:mb-16 max-w-xl font-black tracking-[0.2em] uppercase italic bg-gradient-to-r from-transparent via-blue-400/10 to-transparent py-2 border-y border-blue-500/5">
           Solitaire Evolution • Rounds 1-10
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 w-full max-w-5xl">
           <MenuButton 
             icon={<PlayCircle className="fill-blue-500" />} 
             label="ELITE MISSION" 
@@ -153,19 +153,19 @@ const MenuButton = ({ icon, label, sub, onClick, primary = false, color = 'blue'
   };
 
   return (
-    <motion.button
+      <motion.button
       whileHover={!disabled ? { scale: 1.02, y: -2 } : {}}
       whileTap={!disabled ? { scale: 0.98 } : {}}
       onClick={onClick}
       disabled={disabled}
-      className={`flex items-center gap-4 md:gap-6 p-5 md:p-8 rounded-3xl md:rounded-[2.5rem] border transition-all text-left group relative overflow-hidden ${getColors()} ${className}`}
+      className={`flex items-center gap-3 md:gap-6 p-4 md:p-8 rounded-2xl md:rounded-[2.5rem] border transition-all text-left group relative overflow-hidden ${getColors()} ${className}`}
     >
-      <div className="p-3 md:p-5 rounded-2xl transition-all group-hover:scale-110 bg-white/5 group-hover:bg-white/10">
-         {React.cloneElement(icon as React.ReactElement, { size: 24 })}
+      <div className="p-2.5 md:p-5 rounded-xl md:rounded-2xl transition-all group-hover:scale-110 bg-white/5 group-hover:bg-white/10">
+         {React.cloneElement(icon as React.ReactElement, { size: 20 })}
       </div>
       <div className="flex flex-col relative z-20">
-         <span className="font-display tracking-widest text-lg md:text-2xl uppercase italic">{label}</span>
-         <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] opacity-40">{sub}</span>
+         <span className="font-display tracking-widest text-base md:text-2xl uppercase italic">{label}</span>
+         <span className="text-[7px] md:text-[10px] font-black uppercase tracking-[0.2em] opacity-40">{sub}</span>
       </div>
     </motion.button>
   );
