@@ -65,7 +65,7 @@ service cloud.firestore {
     match /rooms/{roomId} {
       allow get: if isSignedIn() && isValidId(roomId);
       allow create: if isSignedIn() && isValidRoom(incoming()) && isValidId(roomId);
-      allow update: if isSignedIn() && isRoomUpdate(incoming());
+      allow update: if isSignedIn() && (isRoomUpdate(incoming()) || incoming().keys().hasAll(['status']));
       
       match /players/{userId} {
         function isValidRoomPlayer(data) {

@@ -36,18 +36,15 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
       }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, `rooms/${roomId}/players`));
     }).catch(err => handleFirestoreError(err, OperationType.GET, `players/${auth.currentUser?.uid}`));
 
-    // Listen to room status
+    // Initialize room if not exists
     const roomRef = doc(db, 'rooms', roomId);
-    setDoc(roomRef, {
-      createdAt: serverTimestamp(),
-      status: 'lobby',
-      gameType: 'golf'
-    }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, `rooms/${roomId}`));
-
-    const unsubRoom = onSnapshot(roomRef, (snap) => {
-      const data = snap.data();
-      if (data?.status === 'playing') {
-        onStart();
+    getDoc(roomRef).then(snap => {
+      if (!snap.exists()) {
+        setDoc(roomRef, {
+          createdAt: serverTimestamp(),
+          status: 'lobby',
+          gameType: 'golf'
+        }).catch(err => handleFirestoreError(err, OperationType.WRITE, `rooms/${roomId}`));
       }
     });
 
@@ -58,7 +55,6 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
     });
 
     return () => {
-      unsubRoom();
       unsubPlayers();
       // Optional: Leave room
       deleteDoc(playerRef).catch(console.error);
@@ -72,7 +68,10 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
   };
 
   const handleStartGame = async () => {
-    await setDoc(doc(db, 'rooms', roomId), { status: 'playing' }, { merge: true });
+    await setDoc(doc(db, 'rooms', roomId), { 
+      status: 'playing',
+      currentRound: 1 
+    }, { merge: true });
   };
 
   return (

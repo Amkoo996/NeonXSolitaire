@@ -25,6 +25,21 @@ export default function App() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [isFastMode, setIsFastMode] = useState(false);
 
+  useEffect(() => {
+    if (!roomId || !auth.currentUser) return;
+    const roomRef = doc(db, 'rooms', roomId);
+    const unsub = onSnapshot(roomRef, (snap) => {
+      const data = snap.data();
+      if (data?.currentRound && data.currentRound !== currentRound) {
+        setCurrentRound(data.currentRound);
+      }
+      if (data?.status === 'playing' && gameState === 'lobby') {
+        setGameState('playing');
+      }
+    });
+    return () => unsub();
+  }, [roomId, currentRound, gameState]);
+
   const handleProfileSetup = () => {
     setGameState('profile');
   };

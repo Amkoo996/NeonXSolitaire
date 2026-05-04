@@ -273,24 +273,14 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
     return () => unsub();
   }, [auth.currentUser?.uid, state === null, roomId]);
 
-  const handleCardClick = (card: CardType, pyramidIndex: number, cardIndex: number) => {
+  const handleCardClick = (card: CardType, pileIndex: number, cardIndex: number) => {
     if (!state || !card.isFaceUp || isFinishing) return;
 
-    // Uncovering logic
-    let isCovered = false;
-    if (state.currentRound <= 3) {
-      // Pyramid logic: 0 covered by 1,2. 1 by 3,4. 2 by 4,5.
-      const pyramid = state.columns[pyramidIndex];
-      const uncoveringMap: Record<number, number[]> = { 0: [1, 2], 1: [3, 4], 2: [4, 5] };
-      const dependencies = uncoveringMap[cardIndex] || [];
-      isCovered = dependencies.some(depIdx => pyramid.some(c => c.originalIdx === depIdx));
-    } else {
-      // Linear pile logic: only the top card is accessible
-      const pile = state.columns[pyramidIndex];
-      isCovered = cardIndex < pile.length - 1;
-    }
+    // Linear pile logic for all levels: only the top card of any pile is accessible
+    const pile = state.columns[pileIndex];
+    const isExposed = cardIndex === pile.length - 1;
 
-    if (isCovered) return;
+    if (!isExposed) return;
 
     const slot1Top = state.foundations[0][state.foundations[0].length - 1];
     const slot2Top = state.foundations[1].length > 0 ? state.foundations[1][state.foundations[1].length - 1] : null;
@@ -313,27 +303,12 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       let slot2JustUnlocked = false;
 
       const newColumns = state.columns.map((p, pIdx) => {
-        if (pIdx === pyramidIndex) {
+        if (pIdx === pileIndex) {
           const updated = p.filter(c => c.id !== card.id);
           
-          if (state.currentRound <= 3) {
-             const uncoveringMap: Record<number, number[]> = { 0: [1, 2], 1: [3, 4], 2: [4, 5] };
-             updated.forEach((c) => {
-               const oIdx = c.originalIdx;
-               if (oIdx !== undefined) {
-                 const deps = uncoveringMap[oIdx] || [];
-                 const stillCovered = deps.some(depIdx => updated.some(uc => uc.originalIdx === depIdx));
-                 if (!stillCovered) {
-                    if (!c.isFaceUp) playBeep(392, 0.1);
-                    c.isFaceUp = true;
-                 }
-               }
-             });
-          } else {
-             if (updated.length > 0) {
-               if (!updated[updated.length - 1].isFaceUp) playBeep(392, 0.1);
-               updated[updated.length - 1].isFaceUp = true;
-             }
+          if (updated.length > 0) {
+            if (!updated[updated.length - 1].isFaceUp) playBeep(392, 0.1);
+            updated[updated.length - 1].isFaceUp = true;
           }
 
           return updated;
@@ -355,9 +330,9 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       const newTotalScore = state.score + moveScore;
       const allCleared = newColumns.every(p => p.length === 0);
 
-      if (newColumns[pyramidIndex].length === 0 && !diamonds[pyramidIndex]) {
+      if (newColumns[pileIndex].length === 0 && !diamonds[pileIndex]) {
         const newDiamonds = [...diamonds];
-        newDiamonds[pyramidIndex] = true;
+        newDiamonds[pileIndex] = true;
         setDiamonds(newDiamonds);
         playBeep(1046.5, 0.3, 'square');
         addScoreEvent(5000, 1, 512, 384, 'bonus', 'DIAMOND UNLOCKED!');
@@ -606,59 +581,13 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       {/* Main Game Area */}
       <div className="flex-1 w-full flex flex-col items-center justify-center p-0 md:p-4 relative z-10 overflow-hidden">
           <div className="w-full h-full flex items-center justify-center">
-            {state.currentRound <= 3 ? (
-               <div className="flex flex-col items-center gap-1 origin-center transition-transform scale-110 md:scale-100">
-                  <div className="h-[200px] md:h-[350px] flex justify-center">
-                     <Pyramid 
-                       cards={state.columns[0]} 
-                       onCardClick={(card, idx) => handleCardClick(card, 0, idx)} 
-                       onDragEnd={handleDragEnd}
-                       boardRef={boardRef}
-                       pyramidIndex={0}
-                     />
-                  </div>
-                  <div className="h-[200px] md:h-[350px] flex justify-center gap-2 md:gap-12">
-                     <Pyramid 
-                       cards={state.columns[1]} 
-                       onCardClick={(card, idx) => handleCardClick(card, 1, idx)} 
-                       onDragEnd={handleDragEnd}
-                       boardRef={boardRef}
-                       pyramidIndex={1}
-                     />
-                     <Pyramid 
-                       cards={state.columns[2]} 
-                       onCardClick={(card, idx) => handleCardClick(card, 2, idx)} 
-                       onDragEnd={handleDragEnd}
-                       boardRef={boardRef}
-                       pyramidIndex={2}
-                     />
-                  </div>
-               </div>
-            ) : (
-              <div className={cn("grid w-full h-full items-center justify-items-center gap-x-0.5 md:gap-x-4 content-center origin-center transition-transform", 
-                state.currentRound >= 10 ? "grid-cols-8" : 
-                state.currentRound >= 7 ? "grid-cols-7" : 
-                "grid-cols-5")}>
-                {state.columns.map((pile, idx) => (
-                  <motion.div 
-                    key={`${state.currentRound}-pile-${idx}`}
-                    initial={{ opacity: 0, scale: 0.8, y: 50 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="relative h-[250px] md:h-[400px] w-full flex justify-center"
-                  >
-                    <LayoutContainer 
-                      pileIdx={idx} 
-                      round={state.currentRound} 
-                      cards={pile} 
-                      onCardClick={(card, cIdx) => handleCardClick(card, idx, cIdx)} 
-                      onDragEnd={handleDragEnd}
-                      boardRef={boardRef}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            )}
+             <FormationLayout 
+               round={state.currentRound}
+               columns={state.columns}
+               onCardClick={handleCardClick}
+               onDragEnd={handleDragEnd}
+               boardRef={boardRef}
+             />
           </div>
       </div>
 
@@ -771,126 +700,156 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   );
 };
 
-const LayoutContainer = React.memo(({ pileIdx, round, cards, onCardClick, onDragEnd, boardRef }: { 
-  pileIdx: number, 
-  round: number, 
-  cards: CardType[], 
-  onCardClick: (card: CardType, idx: number) => void,
-  onDragEnd: (event: any, info: any, card: CardType, pyramidIndex: number, cardIndex: number) => void,
-  boardRef: React.RefObject<HTMLDivElement>
-}) => {
-  const getCardStyle = (idx: number) => {
-    // Dynamic vertical spacing based on card count and screen size to fit the container
-    const isMobile = window.innerWidth < 768;
-    const spacing = isMobile ? 10 : (cards.length > 8 ? 20 : cards.length > 5 ? 25 : 30);
-    const baseTop = idx * (isMobile ? 7 : spacing);
+interface FormationLayoutProps {
+  round: number;
+  columns: CardType[][];
+  onCardClick: (card: CardType, pileIdx: number, cardIndex: number) => void;
+  onDragEnd: (event: any, info: any, card: CardType, pyramidIndex: number, cardIndex: number) => void;
+  boardRef: React.RefObject<HTMLDivElement>;
+}
+
+const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, boardRef }: FormationLayoutProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  const getPosition = (pileIdx: number, cardIdx: number, totalPiles: number) => {
+    // Relative coordinates (0 to 100)
+    let x = 50;
+    let y = 50;
+    let rotate = 0;
+    let scale = 1;
+
+    const stackOffset = cardIdx * (isMobile ? 8 : 12);
     
-    if (round >= 4 && round <= 6) {
-      const angle = (pileIdx - 2) * 5; 
-      const xOffset = Math.sin(idx * 0.2) * 4 + (pileIdx - 2) * 4;
-      return { top: baseTop, left: xOffset, rotate: angle };
-    } else if (round >= 7 && round <= 9) {
-      const wave = Math.sin((pileIdx + idx) * 0.5) * 6;
-      return { top: baseTop, left: wave, rotate: idx * 0.5 };
-    } else if (round >= 10) {
-      return { top: idx * (isMobile ? 12 : 25), left: 0, rotate: 0 };
+    if (round === 1) {
+      // Pyramid Pattern: 10 piles (arranged in 4 rows: 1, 2, 3, 4)
+      const rows = [1, 2, 3, 4];
+      let currentPile = 0;
+      let row = 0;
+      let colInRow = 0;
+      
+      for (let r = 0; r < rows.length; r++) {
+        if (pileIdx >= currentPile && pileIdx < currentPile + rows[r]) {
+          row = r;
+          colInRow = pileIdx - currentPile;
+          break;
+        }
+        currentPile += rows[r];
+      }
+      
+      const rowWidth = rows[row] * 20;
+      x = 50 + (colInRow * 20) - (rowWidth / 2) + 10;
+      y = 15 + row * 22;
+    } else if (round === 2) {
+      // Crescent Moon Pattern
+      const angleStep = Math.PI / (totalPiles - 1);
+      const angle = pileIdx * angleStep - Math.PI;
+      const radius = isMobile ? 35 : 40;
+      x = 50 + Math.cos(angle) * radius;
+      y = 55 + Math.sin(angle) * (radius * 0.8);
+      rotate = (angle * 180) / Math.PI + 90;
+    } else if (round === 3) {
+      // Twin Peaks (Double Pyramid)
+      const isLeft = pileIdx < totalPiles / 2;
+      const localIdx = isLeft ? pileIdx : pileIdx - totalPiles / 2;
+      const rows = [1, 2, 3]; // 1+2+3 = 6 per peak
+      let row = 0;
+      let colInRow = 0;
+      let current = 0;
+      for (let r = 0; r < rows.length; r++) {
+        if (localIdx >= current && localIdx < current + rows[r]) {
+          row = r; colInRow = localIdx - current; break;
+        }
+        current += rows[r];
+      }
+      x = (isLeft ? 25 : 75) + (colInRow * 15) - (rows[row] * 7.5) + 7.5;
+      y = 20 + row * 25;
+    } else if (round === 4) {
+      // Star Nova
+      const angle = (pileIdx / totalPiles) * Math.PI * 2;
+      const dist = pileIdx % 2 === 0 ? 30 : 15;
+      x = 50 + Math.cos(angle) * dist;
+      y = 50 + Math.sin(angle) * dist;
+      rotate = (angle * 180) / Math.PI;
+    } else if (round === 5 || round === 8) {
+      // Organized Columns
+      const spacing = 90 / (totalPiles - 1);
+      x = 5 + pileIdx * spacing;
+      y = 25;
+    } else if (round === 6) {
+      // Wave Pattern
+      const spacing = 100 / (totalPiles - 1);
+      x = pileIdx * spacing;
+      y = 40 + Math.sin(pileIdx * 0.8) * 20;
+      rotate = Math.cos(pileIdx * 0.8) * 20;
+    } else if (round === 7) {
+      // Orbital Ring
+      const angle = (pileIdx / totalPiles) * Math.PI * 2;
+      x = 50 + Math.cos(angle) * 35;
+      y = 50 + Math.sin(angle) * 35;
+      rotate = (angle * 180) / Math.PI;
+    } else if (round === 9) {
+      // Diamond Shape
+      const coords = [
+        [50, 10], [30, 30], [70, 30], [15, 50], [50, 50], [85, 50], [30, 70], [70, 70], [50, 90]
+      ];
+      const pt = coords[pileIdx % coords.length];
+      x = pt[0]; y = pt[1];
+    } else {
+      // Chaos / Random-ish
+      const seed = pileIdx * 123.45;
+      x = 10 + (Math.sin(seed) * 0.5 + 0.5) * 80;
+      y = 10 + (Math.cos(seed * 0.7) * 0.5 + 0.5) * 80;
+      rotate = (Math.sin(seed * 2) * 20);
     }
-    
-    return { top: baseTop, left: 0, rotate: 0 };
+
+    return { 
+      left: `${x}%`, 
+      top: `${y}%`, 
+      transform: `translate(-50%, ${stackOffset}px) rotate(${rotate}deg) scale(${scale})`,
+      zIndex: 10 + cardIdx
+    };
   };
 
   return (
-    <div className="relative w-[45px] md:w-[110px] h-[340px]">
-       {cards.map((card, i) => (
-         <motion.div
-           key={card.id}
-           className="absolute"
-           style={{ 
-             ...getCardStyle(i),
-             zIndex: i,
-           }}
-           initial={{ opacity: 0, scale: 0.5, y: 100 }}
-           animate={{ 
-             opacity: 1,
-             scale: 1, 
-             y: 0 
-           }}
-           transition={{ duration: 0.6, delay: i * 0.05 + pileIdx * 0.08, type: "spring", stiffness: 100 }}
-         >
-           <Card 
-             card={card} 
-             onClick={() => onCardClick(card, i)} 
-             isClickable={card.isFaceUp && i === cards.length - 1} 
-             className={!card.isFaceUp ? "brightness-[1.0] grayscale-0" : "shadow-[0_0_25px_rgba(59,130,246,0.4)]"}
-             drag={card.isFaceUp && i === cards.length - 1}
-             onDragEnd={(e, info) => onDragEnd(e, info, card, pileIdx, i)}
-             dragConstraints={boardRef}
-           />
-         </motion.div>
+    <div ref={containerRef} className="relative w-full h-full max-w-[95vw] max-h-[60vh] mx-auto">
+       {columns.map((pile, pIdx) => (
+         <React.Fragment key={`pile-${pIdx}`}>
+           {pile.map((card, cIdx) => (
+             <motion.div
+               key={card.id}
+               className="absolute"
+               initial={{ opacity: 0, scale: 0, x: -100, y: -100 }}
+               animate={{ 
+                 opacity: 1, 
+                 scale: 1,
+                 x: 0,
+                 y: 0
+               }}
+               style={getPosition(pIdx, cIdx, columns.length)}
+               transition={{ 
+                 type: "spring", 
+                 stiffness: 260, 
+                 damping: 20, 
+                 delay: pIdx * 0.05 + cIdx * 0.02 
+               }}
+             >
+               <Card 
+                 card={card}
+                 onClick={() => onCardClick(card, pIdx, cIdx)}
+                 isClickable={card.isFaceUp && cIdx === pile.length - 1}
+                 className={cn(
+                   "transition-shadow duration-300",
+                   card.isFaceUp && cIdx === pile.length - 1 ? "shadow-[0_0_20px_rgba(59,130,246,0.6)] cursor-pointer" : "brightness-[0.8]"
+                 )}
+                 drag={card.isFaceUp && cIdx === pile.length - 1}
+                 onDragEnd={(e, info) => onDragEnd(e, info, card, pIdx, cIdx)}
+                 dragConstraints={boardRef}
+               />
+             </motion.div>
+           ))}
+         </React.Fragment>
        ))}
     </div>
   );
 });
-
-const Pyramid = React.memo(({ cards, onCardClick, onDragEnd, boardRef, pyramidIndex }: { 
-  cards: CardType[], 
-  onCardClick: (card: CardType, idx: number) => void,
-  onDragEnd: (event: any, info: any, card: CardType, pyramidIndex: number, cardIndex: number) => void,
-  boardRef: React.RefObject<HTMLDivElement>,
-  pyramidIndex: number
-}) => {
-  const renderCardAt = (originalIndex: number) => {
-    const card = cards.find(c => c.originalIdx === originalIndex);
-    if (!card) return <div className="w-10 h-15 opacity-0" />; 
-    
-    return (
-        <motion.div
-           layoutId={card.id}
-           initial={{ opacity: 0, scale: 0.5 }}
-           animate={{ opacity: 1 }} 
-           className={card.isFaceUp ? "relative z-30" : "relative z-0"}
-        >
-           <Card 
-             card={card} 
-             onClick={() => onCardClick(card, originalIndex)} 
-             isClickable={card.isFaceUp}
-             className={card.isFaceUp ? "shadow-[0_0_35px_rgba(59,130,246,0.5)]" : "opacity-90"}
-             drag={card.isFaceUp}
-             onDragEnd={(e, info) => onDragEnd(e, info, card, pyramidIndex, originalIndex)}
-             dragConstraints={boardRef}
-           />
-        </motion.div>
-    );
-  };
-
-  return (
-    <div className="relative w-[210px] md:w-[320px] h-[170px] md:h-[250px]">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-0">
-        {renderCardAt(0)}
-      </div>
-      
-      <div className="absolute top-6 md:top-16 left-1/2 -translate-x-1/2 flex gap-1 md:gap-10 z-10 w-full justify-center">
-        {renderCardAt(1)}
-        {renderCardAt(2)}
-      </div>
- 
-      <div className="absolute top-12 md:top-32 left-1/2 -translate-x-1/2 flex gap-1 md:gap-10 z-20 w-full justify-center">
-        {renderCardAt(3)}
-        {renderCardAt(4)}
-        {renderCardAt(5)}
-      </div>
-    </div>
-  );
-});
-
-const Tree = ({ size }: { size: 'sm' | 'md' | 'lg' }) => {
-  const scale = size === 'lg' ? 1.5 : size === 'md' ? 1.1 : 0.8;
-  return (
-    <div className="flex flex-col items-center" style={{ transform: `scale(${scale})` }}>
-       <div className="w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-bottom-[30px] border-b-emerald-600 mb-[-15px]" />
-       <div className="w-0 h-0 border-l-[30px] border-l-transparent border-r-[30px] border-r-transparent border-bottom-[40px] border-b-emerald-700 mb-[-20px]" />
-       <div className="w-0 h-0 border-l-[40px] border-l-transparent border-r-[40px] border-r-transparent border-bottom-[50px] border-b-emerald-800" />
-       <div className="w-4 h-6 bg-amber-900 rounded-sm" />
-    </div>
-  )
-}

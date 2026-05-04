@@ -38,58 +38,59 @@ export const shuffle = (deck: Card[], seed?: number): Card[] => {
 export const deal = (currentRound: number = 1, seed?: number) => {
   const deck = shuffle(createDeck(), seed);
   
-  // Complexity increases with rounds
-  // We'll define layouts based on round
+  // Formation-based dealing
   let columns: Card[][] = [];
   let cardsToDeploy = 0;
+  let numPiles = 0;
 
-  if (currentRound <= 3) {
-    // 3 Pyramids of 6 cards each = 18 cards
-    columns = Array.from({ length: 3 }, () => []);
+  if (currentRound === 1) {
+    // Single Pyramid: 15 cards (1-2-3-4-5) - simplified for mobile
+    numPiles = 10; // We'll treat every card as a potential "pile" or position for layout
+    cardsToDeploy = 15;
+  } else if (currentRound === 2) {
+    // Crescent: 18 cards
+    numPiles = 9;
     cardsToDeploy = 18;
-    for (let p = 0; p < 3; p++) {
-      for (let i = 0; i < 6; i++) {
-        const card = deck.pop()!;
-        card.isFaceUp = i >= 3; // Bottom row face up
-        (card as any).originalIdx = i;
-        columns[p].push(card);
-      }
-    }
+  } else if (currentRound === 3) {
+    // Twin Peaks: 2 Pyramids (6+6) = 12 cards
+    numPiles = 12;
+    cardsToDeploy = 12;
+  } else if (currentRound === 4) {
+    // Star Nova
+    numPiles = 8;
+    cardsToDeploy = 16;
   } else if (currentRound <= 6) {
-    // 5 Columns of 5 cards each = 25 cards (capped at 24 for layout plus foundation if needed, but let's stick to logic)
-    // Actually user said deck max 24. But usually Golf has 35 on board. 
-    // Let's use 24 total for board + stock? User said "max card in deck limited on 24". 
-    // Usually "deck" means the stock. Let's limit stock to 24.
-    columns = Array.from({ length: 5 }, () => []);
+    // Columns
+    numPiles = 5;
     cardsToDeploy = 20; 
-    for (let i = 0; i < cardsToDeploy; i++) {
-      const card = deck.pop()!;
-      const colIdx = i % 5;
-      card.isFaceUp = i >= cardsToDeploy - 5;
-      columns[colIdx].push(card);
-    }
   } else if (currentRound <= 9) {
-    // 7 Columns
-    columns = Array.from({ length: 7 }, () => []);
+    // Wide Grid
+    numPiles = 7;
     cardsToDeploy = 21;
-    for (let i = 0; i < cardsToDeploy; i++) {
-      const card = deck.pop()!;
-      const colIdx = i % 7;
-      card.isFaceUp = i >= cardsToDeploy - 7;
-      columns[colIdx].push(card);
-    }
   } else {
-    // Master Round: 8 Columns
-    columns = Array.from({ length: 8 }, () => []);
-    cardsToDeploy = 24; // Reduce from 32 to fit 52 card limit (24 board + 24 stock + 1 foundation = 49)
-    for (let i = 0; i < cardsToDeploy; i++) {
-      const card = deck.pop()!;
-      if (!card) break;
-      const colIdx = i % 8;
-      card.isFaceUp = i >= cardsToDeploy - 8;
-      columns[colIdx].push(card);
-    }
+    // Master Chaos
+    numPiles = 10;
+    cardsToDeploy = 24;
   }
+
+  columns = Array.from({ length: numPiles }, () => []);
+  
+  for (let i = 0; i < cardsToDeploy; i++) {
+    const card = deck.pop()!;
+    if (!card) break;
+    const colIdx = i % numPiles;
+    
+    // In formation mode, usually the top card of each logical "pile" is open
+    // We'll calculate face-up status in the component or set it here for the last layer
+    columns[colIdx].push(card);
+  }
+
+  // Set top cards face up
+  columns.forEach(pile => {
+    if (pile.length > 0) {
+      pile[pile.length - 1].isFaceUp = true;
+    }
+  });
 
   const foundationCard = deck.pop()!;
   foundationCard.isFaceUp = true;
