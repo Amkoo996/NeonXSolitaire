@@ -51,21 +51,21 @@ service cloud.firestore {
     // Rooms & Multiplayer
     function isValidRoom(data) {
       return data.keys().hasAll(['status', 'gameType', 'createdAt']) &&
-             data.keys().size() == 3 &&
              data.status is string && data.status in ['lobby', 'playing', 'finished'] &&
              data.gameType is string && data.gameType in ['golf'] &&
              data.createdAt == request.time;
     }
 
     function isRoomUpdate(data) {
-      return data.diff(existing()).affectedKeys().hasOnly(['status']) &&
-             data.status is string && data.status in ['lobby', 'playing', 'finished'];
+      // Room updates can change status, currentRound, and lastUpdate
+      return (data.status is string && data.status in ['lobby', 'playing', 'finished']) &&
+             (data.keys().hasAny(['currentRound']) ? data.currentRound is number : true);
     }
 
     match /rooms/{roomId} {
       allow get: if isSignedIn() && isValidId(roomId);
       allow create: if isSignedIn() && isValidRoom(incoming()) && isValidId(roomId);
-      allow update: if isSignedIn() && (isRoomUpdate(incoming()) || incoming().keys().hasAll(['status']));
+      allow update: if isSignedIn() && isRoomUpdate(incoming());
       
       match /players/{userId} {
         function isValidRoomPlayer(data) {
