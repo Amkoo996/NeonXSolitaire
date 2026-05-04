@@ -68,25 +68,25 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
       className={cn(
         "w-12 h-18 md:w-24 md:h-36 bg-white rounded-lg md:rounded-2xl border flex flex-col items-center justify-between p-1.5 md:p-3 relative select-none overflow-hidden",
         getBorderColor(),
-        isClickable && onClick ? "cursor-pointer" : "cursor-default opacity-60 grayscale-[0.5]",
+        isClickable && onClick ? "cursor-pointer" : "cursor-default",
         className
       )}
     >
       <div className="absolute top-1 left-1.5 md:top-2 md:left-3 flex flex-col items-center leading-none z-10">
-        <span className={cn("text-xs md:text-2xl font-black italic tracking-tighter", getTextColor())}>
+        <span className={cn("text-sm md:text-2xl font-black italic tracking-tighter", getTextColor())}>
           {card.rank}
         </span>
-        <div className="w-3 h-3 md:w-5 md:h-5 mt-0.5">
+        <div className="w-4 h-4 md:w-5 md:h-5 mt-0.5">
           {getSuitIcon()}
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center relative z-10">
-        <div className="w-6 h-6 md:w-16 md:h-16 opacity-10">
+        <div className="w-8 h-8 md:w-16 md:h-16 opacity-10">
            {getSuitIcon()}
         </div>
         <span className={cn(
-          "text-xl md:text-5xl font-display italic tracking-tighter absolute z-10",
+          "text-3xl md:text-5xl font-display italic tracking-tighter absolute z-10",
           getTextColor()
         )}>
           {card.rank}
@@ -94,10 +94,10 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
       </div>
 
       <div className="absolute bottom-1 right-1.5 md:bottom-2 md:right-3 flex flex-col items-center leading-none rotate-180 z-10">
-        <span className={cn("text-xs md:text-2xl font-black italic tracking-tighter", getTextColor())}>
+        <span className={cn("text-sm md:text-2xl font-black italic tracking-tighter", getTextColor())}>
           {card.rank}
         </span>
-        <div className="w-3 h-3 md:w-5 md:h-5 mt-0.5">
+        <div className="w-4 h-4 md:w-5 md:h-5 mt-0.5">
           {getSuitIcon()}
         </div>
       </div>

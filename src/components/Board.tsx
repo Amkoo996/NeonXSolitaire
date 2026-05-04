@@ -446,7 +446,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   const totalCardsLeft = state.columns.reduce((acc, col) => acc + col.length, 0);
 
   return (
-    <div ref={boardRef} className="w-full max-w-[1024px] h-screen lg:h-auto lg:aspect-[4/3] bg-[#030303] relative overflow-hidden flex flex-col md:rounded-[3rem] shadow-[0_0_100px_rgba(59,130,246,0.1)] border-x md:border-8 border-white/5 select-none font-sans mx-auto">
+    <div ref={boardRef} className="w-full max-w-[1024px] h-[100dvh] lg:h-auto lg:aspect-[4/3] bg-[#030303] relative overflow-hidden flex flex-col md:rounded-[3rem] shadow-[0_0_100px_rgba(59,130,246,0.1)] border-x md:border-8 border-white/5 select-none font-sans mx-auto">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.15)_0%,transparent_60%)]" />
@@ -700,7 +700,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
 
               {/* Slots */}
               <div className="flex items-center gap-3 md:gap-8">
-                  <div ref={foundationRef0} className="w-14 h-20 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
+                  <div ref={foundationRef0} className="w-20 h-28 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
                      <AnimatePresence mode="popLayout">
                         {state.foundations[0].length > 0 && (
                           <motion.div
@@ -712,7 +712,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                             <Card 
                               card={state.foundations[0][state.foundations[0].length - 1]} 
                               isClickable={false}
-                              className="w-full h-full border-0 rounded-none bg-transparent"
+                              className="w-full h-full border-0"
                             />
                           </motion.div>
                         )}
@@ -720,7 +720,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                   </div>
 
                   <div ref={foundationRef1} className={cn(
-                    "w-14 h-20 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
+                    "w-20 h-28 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
                     state.slot2Unlocked ? "bg-white/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]" : "bg-black/40 border-white/5 grayscale"
                   )}>
                      <AnimatePresence mode="popLayout">
@@ -734,12 +734,12 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                             <Card 
                               card={state.foundations[1][state.foundations[1].length - 1]} 
                               isClickable={false}
-                              className="w-full h-full border-0 rounded-none bg-transparent"
+                              className="w-full h-full border-0"
                             />
                           </motion.div>
                         ) : (
                           <div className="text-white/10 text-xs">
-                             {state.slot2Unlocked ? <SkipForward size={16} className="text-amber-500 animate-pulse" /> : "🔒"}
+                             {state.slot2Unlocked ? <SkipForward size={24} className="text-amber-500 animate-pulse" /> : "🔒"}
                           </div>
                         )}
                      </AnimatePresence>
