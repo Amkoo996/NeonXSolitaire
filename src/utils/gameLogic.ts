@@ -79,10 +79,16 @@ export const deal = (currentRound: number = 1, seed?: number) => {
     columns[colIdx].push(card);
   }
 
-  // Set top cards face up
-  columns.forEach(pile => {
+  // Set face up status based on round
+  columns.forEach((pile, pIdx) => {
     if (pile.length > 0) {
-      pile[pile.length - 1].isFaceUp = true;
+      if (currentRound === 1) {
+        // Pyramid: Only the bottom row (indices 10 to 14) starts face up
+        pile[pile.length - 1].isFaceUp = pIdx >= 10;
+      } else {
+        // Default: Top card of each stack is face up
+        pile[pile.length - 1].isFaceUp = true;
+      }
     }
   });
 

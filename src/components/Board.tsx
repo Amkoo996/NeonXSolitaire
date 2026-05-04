@@ -276,11 +276,39 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   const handleCardClick = (card: CardType, pileIndex: number, cardIndex: number) => {
     if (!state || !card.isFaceUp || isFinishing) return;
 
-    // Linear pile logic for all levels: only the top card of any pile is accessible
+    // Enhanced Exposed logic for formations
+    // 1. Must be the top card of its own stack
     const pile = state.columns[pileIndex];
-    const isExposed = cardIndex === pile.length - 1;
+    const isTopOfStack = cardIndex === pile.length - 1;
+    if (!isTopOfStack) return;
 
-    if (!isExposed) return;
+    // 2. Proximity/Occlusion check for Round 1 (Pyramid) and complex shapes
+    // In a logical pyramid, row N is covered by row N+1.
+    // For our pile-based formations, we check if any other piles are logically "in front"
+    if (state.currentRound === 1) {
+       const rows = [1, 2, 3, 4, 5];
+       let myRow = 0;
+       let myPileIdxInRow = 0;
+       let count = 0;
+       for (let r = 0; r < rows.length; r++) {
+         if (pileIndex >= count && pileIndex < count + rows[r]) {
+           myRow = r;
+           myPileIdxInRow = pileIndex - count;
+           break;
+         }
+         count += rows[r];
+       }
+       
+       // If I am in row N, I am covered by row N+1 at pile indices (myRowPiles + myIdx) and (myRowPiles + myIdx + 1)
+       if (myRow < 4) {
+         const nextRowStart = count + rows[myRow];
+         const leftCoverer = nextRowStart + myPileIdxInRow;
+         const rightCoverer = nextRowStart + myPileIdxInRow + 1;
+         
+         const isBlocked = (state.columns[leftCoverer]?.length > 0) || (state.columns[rightCoverer]?.length > 0);
+         if (isBlocked) return;
+       }
+    }
 
     const slot1Top = state.foundations[0][state.foundations[0].length - 1];
     const slot2Top = state.foundations[1].length > 0 ? state.foundations[1][state.foundations[1].length - 1] : null;
@@ -315,6 +343,34 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
         }
         return p;
       });
+
+      // Special Pyramid Uncovering Logic for Round 1:
+      // Removing a card might expose cards in the row above.
+      if (state.currentRound === 1) {
+        const rows = [1, 2, 3, 4, 5];
+        newColumns.forEach((p, pIdx) => {
+          if (p.length > 0 && !p[p.length - 1].isFaceUp) {
+            let rowAtIdx = 0, colInRow = 0, count = 0;
+            for (let r = 0; r < rows.length; r++) {
+              if (pIdx >= count && pIdx < count + rows[r]) {
+                rowAtIdx = r; colInRow = pIdx - count; break;
+              }
+              count += rows[r];
+            }
+            
+            if (rowAtIdx < 4) {
+              const nextRowStart = count + rows[rowAtIdx];
+              const leftC = nextRowStart + colInRow;
+              const rightC = nextRowStart + colInRow + 1;
+              const isStillBlocked = (newColumns[leftC]?.length > 0) || (newColumns[rightC]?.length > 0);
+              if (!isStillBlocked) {
+                p[p.length - 1].isFaceUp = true;
+                playBeep(440, 0.05);
+              }
+            }
+          }
+        });
+      }
 
       const target = canToSlot1 ? 0 : 1;
       updatedFoundations[target] = [...updatedFoundations[target], card];
@@ -374,15 +430,16 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
     const topCard = newStock.pop()!;
     topCard.isFaceUp = true;
 
-    // Standard Golf: Put drawn card ON TOP of the first foundation slot
-    const newFoundations = [[...state.foundations[0], topCard], state.foundations[1]];
+    // Standard Golf: Put drawn card ON TOP of the first foundation slot. 
+    // "Slot 2" closes (clears and re-locks) when drawing from stock to maintain challenge.
+    const newFoundations = [[...state.foundations[0], topCard], []];
     
     setConsecutiveMoves(0);
     setState({
       ...state,
       stock: newStock,
       foundations: newFoundations,
-      slot2Unlocked: state.slot2Unlocked // Keep slot 2 status
+      slot2Unlocked: false
     });
   };
 
@@ -737,16 +794,17 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
         }
         pileCount += rows[r];
       }
-      x = 50 + (colInRow * (isMobile ? 18 : 15)) - (rows[row] * (isMobile ? 9 : 7.5)) + (isMobile ? 9 : 7.5);
-      y = 10 + row * (isMobile ? 18 : 15);
+      x = 50 + (colInRow * (isMobile ? 16 : 15)) - (rows[row] * (isMobile ? 8 : 7.5)) + (isMobile ? 8 : 7.5);
+      y = 10 + row * (isMobile ? 12 : 15); // Tighter on mobile
     } else if (round === 2) {
       // Horseshoe Crescent
       const angleStep = Math.PI / (totalPiles - 1);
       const angle = (pileIdx * angleStep) - Math.PI;
-      const radiusX = isMobile ? 42 : 45;
-      const radiusY = isMobile ? 35 : 40;
+      // Slightly more radius to avoid overlap, but keep within bounds
+      const radiusX = isMobile ? 36 : 45; 
+      const radiusY = isMobile ? 32 : 40;
       x = 50 + Math.cos(angle) * radiusX;
-      y = 55 + Math.sin(angle) * radiusY;
+      y = 52 + Math.sin(angle) * radiusY;
       rotate = (angle * 180) / Math.PI + 90;
     } else if (round === 3) {
       // Twin Peaks
@@ -760,20 +818,20 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
         }
         count += rows[r];
       }
-      x = (isLeft ? 25 : 75) + (colInRow * (isMobile ? 14 : 12)) - (rows[row] * (isMobile ? 7 : 6)) + (isMobile ? 7 : 6);
-      y = 15 + row * (isMobile ? 22 : 18);
+      x = (isLeft ? 25 : 75) + (colInRow * (isMobile ? 10 : 12)) - (rows[row] * (isMobile ? 5 : 6)) + (isMobile ? 5 : 6);
+      y = 15 + row * (isMobile ? 18 : 18);
     } else if (round === 4) {
       // Radiant Star
       const angle = (pileIdx / totalPiles) * Math.PI * 2;
-      const dist = (pileIdx % 2 === 0) ? (isMobile ? 38 : 42) : (isMobile ? 20 : 25);
+      const dist = (pileIdx % 2 === 0) ? (isMobile ? 35 : 42) : (isMobile ? 18 : 25);
       x = 50 + Math.cos(angle) * dist;
-      y = 50 + Math.sin(angle) * (dist * 0.8);
+      y = 50 + Math.sin(angle) * (dist * 0.7);
       rotate = (angle * 180) / Math.PI;
     } else if (round === 5) {
       // Parallel Beams
       const spacing = 100 / (totalPiles + 1);
       x = (pileIdx + 1) * spacing;
-      y = 20;
+      y = isMobile ? 15 : 20;
     } else {
       // Wave / Grid mix
       const rows = Math.ceil(totalPiles / 5);
@@ -782,10 +840,10 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
       const colIdx = pileIdx % cols;
       
       const xSpacing = 100 / (cols + 1);
-      const ySpacing = 60 / (rows + 1);
+      const ySpacing = isMobile ? 15 : 20;
       
       x = (colIdx + 1) * xSpacing;
-      y = 20 + (rowIdx * ySpacing) + Math.sin(colIdx * 0.5) * 5;
+      y = 15 + (rowIdx * ySpacing);
     }
 
     return { 
