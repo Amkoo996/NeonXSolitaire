@@ -33,12 +33,12 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
   if (!card.isFaceUp) {
     return (
       <div className={cn(
-        "w-12 h-18 md:w-24 md:h-36 rounded-lg md:rounded-2xl bg-blue-600 border-2 border-white/20 shadow-lg relative overflow-hidden group",
+        "w-[48px] h-[70px] sm:w-[58px] sm:h-[82px] md:w-24 md:h-36 rounded-lg md:rounded-2xl bg-blue-600 border border-white/20 shadow-lg relative overflow-hidden group",
         className
       )}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_80%)]" />
-        <div className="absolute inset-2 md:inset-3 border border-white/20 rounded-md md:rounded-xl flex items-center justify-center">
-           <div className="text-white/30 font-black italic text-xl md:text-3xl">X</div>
+        <div className="absolute inset-1 md:inset-3 border border-white/20 rounded-md md:rounded-xl flex items-center justify-center">
+           <div className="text-white/30 font-black italic text-lg md:text-3xl">X</div>
         </div>
       </div>
     );
@@ -66,7 +66,7 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
       whileTap={isClickable && onClick ? { scale: 0.95 } : {}}
       onClick={isClickable ? onClick : undefined}
       className={cn(
-        "w-12 h-18 md:w-24 md:h-36 bg-white rounded-lg md:rounded-2xl border flex flex-col items-center justify-between p-1 md:p-3 relative select-none overflow-hidden",
+        "w-[48px] h-[70px] sm:w-[58px] sm:h-[82px] md:w-24 md:h-36 bg-white rounded-lg md:rounded-2xl border flex flex-col items-center justify-between p-1 md:p-3 relative select-none overflow-hidden",
         getBorderColor(),
         isClickable && onClick ? "cursor-pointer" : "cursor-default",
         className
@@ -80,18 +80,18 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
         )}>
           {card.rank}
         </span>
-        <div className="w-2 h-2 md:w-5 md:h-5 mt-[-2px] md:mt-0">
+        <div className="w-1.5 h-1.5 md:w-5 md:h-5 mt-[1px] md:mt-0">
           {getSuitIcon()}
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center relative z-10">
-        <div className="w-4 h-4 md:w-16 md:h-16 opacity-10">
+        <div className="w-5 h-5 md:w-16 md:h-16 opacity-10">
            {getSuitIcon()}
         </div>
         <span className={cn(
           "font-display italic tracking-tighter absolute z-10",
-          card.rank.length > 1 ? "text-base md:text-5xl" : "text-lg md:text-5xl",
+          card.rank.length > 1 ? "text-[16px] md:text-5xl" : "text-xl md:text-5xl",
           getTextColor()
         )}>
           {card.rank}
@@ -106,7 +106,7 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
         )}>
           {card.rank}
         </span>
-        <div className="w-2 h-2 md:w-5 md:h-5 mt-[-2px] md:mt-0">
+        <div className="w-1.5 h-1.5 md:w-5 md:h-5 mt-[1px] md:mt-0">
           {getSuitIcon()}
         </div>
       </div>

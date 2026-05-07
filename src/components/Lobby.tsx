@@ -75,20 +75,22 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
     }, { merge: true });
   };
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
-    <div className="w-full max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-6 p-4 md:p-8 relative z-10 font-sans">
+    <div className="w-full max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-4 md:gap-6 p-2 md:p-8 relative z-10 font-sans">
       {/* Left Column: Room Info & Invite */}
       <div className="col-span-12 lg:col-span-5 flex flex-col gap-4 md:gap-6 order-2 lg:order-1">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="glass-card rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 border-white/5 relative overflow-hidden group shadow-[0_0_50px_rgba(59,130,246,0.1)]"
+          className="glass-card rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border-white/5 relative overflow-hidden group shadow-[0_0_50px_rgba(59,130,246,0.1)]"
         >
           {/* Background Glow */}
           <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.1)_0%,transparent_70%)] pointer-events-none" />
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
                <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                   <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest leading-none">Broadcasting</span>
@@ -100,22 +102,22 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
                </div>
             </div>
             
-            <div className="flex flex-col gap-1 mb-6 md:mb-8">
+            <div className="flex flex-col gap-1 mb-4 md:mb-8">
               <span className="text-[10px] font-black text-blue-400/40 uppercase tracking-[0.4em] ml-1">Frequency ID</span>
-              <h3 className="text-4xl md:text-7xl font-display text-white italic tracking-tighter leading-none mb-2">
+              <h3 className="text-3xl md:text-7xl font-display text-white italic tracking-tighter leading-none mb-2">
                 {roomId}
               </h3>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <motion.div 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setZoomQR(true)}
-                className="p-5 bg-white rounded-[2rem] flex flex-col items-center shadow-[0_0_40px_rgba(255,255,255,0.1)] cursor-pointer group"
+                className="p-4 md:p-5 bg-white rounded-[1.5rem] md:rounded-[2rem] flex flex-col items-center shadow-[0_0_40px_rgba(255,255,255,0.1)] cursor-pointer group"
               >
                 <div className="p-2 relative">
-                  <QRCodeSVG value={shareUrl} size={160} level="M" />
+                  <QRCodeSVG value={shareUrl} size={isMobile ? 120 : 160} level="M" />
                   <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 flex items-center justify-center transition-colors rounded-lg">
                     <Zap className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" size={32} />
                   </div>
@@ -141,12 +143,15 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
                       exit={{ scale: 0.5, y: 20 }}
                       className="bg-white p-8 rounded-[3rem] shadow-[0_0_100px_rgba(59,130,246,0.5)] flex flex-col items-center"
                     >
-                      <QRCodeSVG value={shareUrl} size={280} level="H" />
-                      <p className="mt-8 text-slate-900 font-black text-xs uppercase tracking-widest text-center px-4">
-                        Scan with second device to synchronize
+                      <QRCodeSVG value={shareUrl} size={320} level="H" />
+                      <p className="mt-8 text-slate-900 font-black text-sm uppercase tracking-widest text-center px-4">
+                        Scan to Join Protocol
                       </p>
-                      <button className="mt-8 px-8 py-4 bg-slate-900 text-white rounded-full font-black text-[10px] uppercase tracking-widest">
-                        Close Protocol
+                      <p className="mt-2 text-slate-400 font-medium text-xs text-center max-w-xs">
+                        Use your second device's camera to synchronize with this room.
+                      </p>
+                      <button className="mt-10 px-10 py-5 bg-slate-900 text-white rounded-full font-black text-xs uppercase tracking-widest">
+                        Close Relay
                       </button>
                     </motion.div>
                   </motion.div>
