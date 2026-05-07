@@ -91,7 +91,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
 
   const foundationRef0 = useRef<HTMLDivElement>(null);
   const foundationRef1 = useRef<HTMLDivElement>(null);
-  const boardRef = useRef<HTMLDivElement>(null);
+  const [boardElement, setBoardElement] = useState<HTMLDivElement | null>(null);
 
   const handleDragEnd = (event: any, info: any, card: CardType, pyramidIndex: number, cardIndex: number) => {
     if (!state || !foundationRef0.current) return;
@@ -501,7 +501,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       </AnimatePresence>
 
       {/* ==================== GAME AREA ==================== */}
-      <main ref={boardRef} className="flex-1 flex flex-col items-center justify-center p-2 md:p-6 overflow-hidden relative">
+      <main ref={setBoardElement} className="flex-1 flex flex-col items-center justify-center p-2 md:p-6 overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/20 to-transparent pointer-events-none" />
         
         <div className="w-full h-full max-w-4xl flex flex-col">
@@ -510,9 +510,10 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
              <FormationLayout 
                round={state.currentRound} 
                columns={state.columns} 
+               piles={state.piles}
                onCardClick={handleCardClick} 
                onDragEnd={handleDragEnd} 
-               boardRef={boardRef} 
+               boardRef={boardElement} 
                errorCardId={errorCardId} 
                successCardId={successCardId}
                userColor={userColor}
@@ -622,8 +623,24 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
       const angle = (pileIdx / totalPiles) * Math.PI * 2;
       const dist = (pileIdx % 2 === 0) ? (isSmallMobile ? 25 : (isMobile ? 30 : 35)) : (isSmallMobile ? 12 : (isMobile ? 15 : 20));
       x = 50 + Math.cos(angle) * dist; y = (isMobile ? 40 : 50) + Math.sin(angle) * (dist * (isMobile ? 0.4 : 0.7)); rotate = (angle * 180) / Math.PI;
-    } else if (round === 5 || round === 6) {
-      x = (pileIdx + 1) * (100 / (totalPiles + 1)); y = (isMobile ? 15 : 20) + Math.sin(pileIdx * (round === 6 ? 1 : 0)) * 10; rotate = Math.cos(pileIdx * (round === 6 ? 1 : 0)) * 10;
+    } else if (round === 5) {
+      // Inverted Pyramid
+      const rows = [5, 4, 3, 2, 1];
+      let r = 0, pCount = 0;
+      for (; r < rows.length; r++) { if (pileIdx >= pCount && pileIdx < pCount + rows[r]) break; pCount += rows[r]; }
+      const cInR = pileIdx - pCount;
+      const spX = isMobile ? 18 : 22;
+      const rowW = rows[r] * spX;
+      x = 50 + (cInR * spX) - (rowW / 2) + (spX / 2);
+      y = (isMobile ? 10 : 12) + r * (isMobile ? 10 : 15);
+      rotate = (cInR - (rows[r]/2)) * 2;
+    } else if (round === 6) {
+      // Hexagon/Diamond
+      const angle = (pileIdx / totalPiles) * Math.PI * 2;
+      const rx = isMobile ? 35 : 42, ry = isMobile ? 22 : 28;
+      x = 50 + Math.cos(angle) * rx;
+      y = (isMobile ? 30 : 35) + Math.sin(angle) * ry;
+      rotate = (angle * 180) / Math.PI;
     } else if (round === 7) {
       // Zig-zag formation
       const isTop = pileIdx < totalPiles / 2;
