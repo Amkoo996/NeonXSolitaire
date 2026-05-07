@@ -33,7 +33,7 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
   if (!card.isFaceUp) {
     return (
       <div className={cn(
-        "w-9 h-14 md:w-24 md:h-36 rounded-lg md:rounded-2xl bg-blue-600 border-2 border-white/20 shadow-lg relative overflow-hidden group",
+        "w-12 h-18 md:w-24 md:h-36 rounded-lg md:rounded-2xl bg-blue-600 border-2 border-white/20 shadow-lg relative overflow-hidden group",
         className
       )}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_80%)]" />
@@ -66,38 +66,38 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
       whileTap={isClickable && onClick ? { scale: 0.95 } : {}}
       onClick={isClickable ? onClick : undefined}
       className={cn(
-        "w-9 h-14 md:w-24 md:h-36 bg-white rounded-lg md:rounded-2xl border flex flex-col items-center justify-between p-1 md:p-3 relative select-none overflow-hidden",
+        "w-12 h-18 md:w-24 md:h-36 bg-white rounded-lg md:rounded-2xl border flex flex-col items-center justify-between p-1 md:p-3 relative select-none overflow-hidden",
         getBorderColor(),
         isClickable && onClick ? "cursor-pointer" : "cursor-default",
         className
       )}
     >
-      <div className="absolute top-1 left-1.5 md:top-2 md:left-3 flex flex-col items-center leading-none z-10">
-        <span className={cn("text-sm md:text-2xl font-black italic tracking-tighter", getTextColor())}>
+      <div className="absolute top-1 left-1 md:top-2 md:left-3 flex flex-col items-center leading-none z-10">
+        <span className={cn("text-base md:text-2xl font-black italic tracking-tighter", getTextColor())}>
           {card.rank}
         </span>
-        <div className="w-4 h-4 md:w-5 md:h-5 mt-0.5">
+        <div className="w-3 h-3 md:w-5 md:h-5 mt-0.5">
           {getSuitIcon()}
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center relative z-10">
-        <div className="w-8 h-8 md:w-16 md:h-16 opacity-10">
+        <div className="w-6 h-6 md:w-16 md:h-16 opacity-10">
            {getSuitIcon()}
         </div>
         <span className={cn(
-          "text-3xl md:text-5xl font-display italic tracking-tighter absolute z-10",
+          "text-2xl md:text-5xl font-display italic tracking-tighter absolute z-10",
           getTextColor()
         )}>
           {card.rank}
         </span>
       </div>
 
-      <div className="absolute bottom-1 right-1.5 md:bottom-2 md:right-3 flex flex-col items-center leading-none rotate-180 z-10">
-        <span className={cn("text-sm md:text-2xl font-black italic tracking-tighter", getTextColor())}>
+      <div className="absolute bottom-1 right-1 md:bottom-2 md:right-3 flex flex-col items-center leading-none rotate-180 z-10">
+        <span className={cn("text-base md:text-2xl font-black italic tracking-tighter", getTextColor())}>
           {card.rank}
         </span>
-        <div className="w-4 h-4 md:w-5 md:h-5 mt-0.5">
+        <div className="w-3 h-3 md:w-5 md:h-5 mt-0.5">
           {getSuitIcon()}
         </div>
       </div>

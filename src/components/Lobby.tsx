@@ -99,9 +99,9 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
                </div>
             </div>
             
-            <div className="flex flex-col gap-1 mb-8">
+            <div className="flex flex-col gap-1 mb-6 md:mb-8">
               <span className="text-[10px] font-black text-blue-400/40 uppercase tracking-[0.4em] ml-1">Frequency ID</span>
-              <h3 className="text-5xl md:text-7xl font-display text-white italic tracking-tighter leading-none mb-2">
+              <h3 className="text-4xl md:text-7xl font-display text-white italic tracking-tighter leading-none mb-2">
                 {roomId}
               </h3>
             </div>

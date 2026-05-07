@@ -80,6 +80,8 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   const [consecutiveMoves, setConsecutiveMoves] = useState(0);
   const [diamonds, setDiamonds] = useState<boolean[]>([]); 
   const [showSummary, setShowSummary] = useState(false);
+  const [errorCardId, setErrorCardId] = useState<string | null>(null);
+  const [successCardId, setSuccessCardId] = useState<string | null>(null);
   const [bonusCalculation, setBonusCalculation] = useState({
     diamonds: 0,
     time: 0,
@@ -318,6 +320,9 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
 
     if (canToSlot1 || canToSlot2) {
       playBeep(523.25 + (consecutiveMoves * 50), 0.2); 
+      setSuccessCardId(card.id);
+      setTimeout(() => setSuccessCardId(null), 300);
+      
       const newConsecutive = consecutiveMoves + 1;
       setConsecutiveMoves(newConsecutive);
       
@@ -415,6 +420,9 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       }
     } else {
       // Penalty for wrong move
+      setErrorCardId(card.id);
+      setTimeout(() => setErrorCardId(null), 500);
+      
       const basePoints = 2000 + (currentRound * 1000);
       const penalty = Math.floor(basePoints / 2);
       addScoreEvent(-penalty, 1, 512, 384, 'penalty', 'WRONG MOVE!');
@@ -518,7 +526,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   const totalCardsLeft = state.columns.reduce((acc, col) => acc + col.length, 0);
 
   return (
-    <div ref={boardRef} className="w-full h-[100dvh] bg-[#030303] relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(59,130,246,0.1)] border-white/5 select-none font-sans">
+    <div ref={boardRef} className="w-full h-full bg-[#030303] relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(59,130,246,0.1)] border-white/5 select-none font-sans">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.15)_0%,transparent_60%)]" />
@@ -535,7 +543,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       <ScorePop events={state.scoreEvents} />
 
       {/* HUD: FIXED TOP */}
-      <div className="h-10 md:h-24 w-full flex items-center justify-between px-3 md:px-12 z-30 bg-[#030303] border-b border-white/5 shrink-0">
+      <div className="h-14 md:h-24 w-full flex items-center justify-between px-3 md:px-12 z-30 bg-[#030303] border-b border-white/5 shrink-0">
         <div className="flex items-center gap-4 md:gap-8">
            <div className="flex flex-col">
              <span className="text-[8px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Phase</span>
@@ -684,12 +692,14 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                onCardClick={handleCardClick}
                onDragEnd={handleDragEnd}
                boardRef={boardRef}
+               errorCardId={errorCardId}
+               successCardId={successCardId}
              />
           </div>
       </div>
 
       {/* Command Hub: FIXED BOTTOM */}
-      <div className="h-16 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-30 relative overflow-hidden shrink-0">
+      <div className="h-24 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-30 relative overflow-hidden shrink-0">
           <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 to-transparent pointer-events-none" />
           
           {/* Multiplayer Feed */}
@@ -725,8 +735,8 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
               </div>
 
               {/* Slots */}
-              <div className="flex items-center gap-2 md:gap-8">
-                  <div ref={foundationRef0} className="w-14 h-20 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
+              <div className="flex items-center gap-2 md:gap-4">
+                  <div ref={foundationRef0} className="w-12 h-18 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
                      <AnimatePresence mode="popLayout">
                         {state.foundations[0].length > 0 && (
                           <motion.div
@@ -746,7 +756,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                   </div>
 
                   <div ref={foundationRef1} className={cn(
-                    "w-14 h-20 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
+                    "w-12 h-18 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
                     state.slot2Unlocked ? "bg-white/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]" : "bg-black/40 border-white/5 grayscale"
                   )}>
                      <AnimatePresence mode="popLayout">
@@ -803,11 +813,14 @@ interface FormationLayoutProps {
   onCardClick: (card: CardType, pileIdx: number, cardIndex: number) => void;
   onDragEnd: (event: any, info: any, card: CardType, pyramidIndex: number, cardIndex: number) => void;
   boardRef: React.RefObject<HTMLDivElement>;
+  errorCardId: string | null;
+  successCardId: string | null;
 }
 
-const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, boardRef }: FormationLayoutProps) => {
+const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, boardRef, errorCardId, successCardId }: FormationLayoutProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isSmallMobile = typeof window !== 'undefined' && window.innerWidth < 400;
 
   const getAnchor = (pileIdx: number, totalPiles: number) => {
     let x = 50, y = 50, rotate = 0;
@@ -820,14 +833,16 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
         pCount += rows[r];
       }
       const colInRow = pileIdx - pCount;
-      const rowW = rows[r] * (isMobile ? 18 : 15);
-      x = 50 + (colInRow * (isMobile ? 18 : 15)) - (rowW / 2) + (isMobile ? 9 : 7.5);
-      y = (isMobile ? 5 : 10) + r * (isMobile ? 14 : 15);
+      const spacingX = isSmallMobile ? 14 : (isMobile ? 16 : 15);
+      const rowW = rows[r] * spacingX;
+      x = 50 + (colInRow * spacingX) - (rowW / 2) + (spacingX / 2);
+      y = (isMobile ? 2 : 10) + r * (isMobile ? 12 : 15);
     } else if (round === 2) {
       const angle = (pileIdx / (totalPiles - 1)) * Math.PI - Math.PI;
-      const rx = isMobile ? 38 : 45, ry = isMobile ? 35 : 40;
+      const rx = isSmallMobile ? 32 : (isMobile ? 38 : 45);
+      const ry = isSmallMobile ? 28 : (isMobile ? 35 : 40);
       x = 50 + Math.cos(angle) * rx;
-      y = (isMobile ? 50 : 52) + Math.sin(angle) * ry;
+      y = (isMobile ? 45 : 52) + Math.sin(angle) * ry;
       rotate = (angle * 180) / Math.PI + 90;
     } else if (round === 3) {
       const isLeft = pileIdx < totalPiles / 2;
@@ -838,33 +853,34 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
         if (localIdx >= pCount && localIdx < pCount + rows[r]) break;
         pCount += rows[r];
       }
-      const rowW = rows[r] * (isMobile ? 12 : 12);
-      x = (isLeft ? 25 : 75) + ((localIdx - pCount) * (isMobile ? 12 : 12)) - (rowW / 2) + (isMobile ? 6 : 6);
-      y = (isMobile ? 8 : 15) + r * (isMobile ? 18 : 18);
+      const spacingX = isSmallMobile ? 10 : 12;
+      const rowW = rows[r] * spacingX;
+      x = (isLeft ? 25 : 75) + ((localIdx - pCount) * spacingX) - (rowW / 2) + (spacingX / 2);
+      y = (isMobile ? 8 : 15) + r * (isMobile ? 16 : 18);
     } else if (round === 4) {
       const angle = (pileIdx / totalPiles) * Math.PI * 2;
-      const dist = (pileIdx % 2 === 0) ? (isMobile ? 38 : 42) : (isMobile ? 20 : 25);
+      const dist = (pileIdx % 2 === 0) ? (isSmallMobile ? 32 : (isMobile ? 38 : 42)) : (isSmallMobile ? 18 : (isMobile ? 22 : 25));
       x = 50 + Math.cos(angle) * dist;
-      y = (isMobile ? 45 : 50) + Math.sin(angle) * (dist * 0.7);
+      y = (isMobile ? 42 : 50) + Math.sin(angle) * (dist * 0.7);
       rotate = (angle * 180) / Math.PI;
     } else if (round === 5 || round === 6) {
       const spacing = 100 / (totalPiles + 1);
       x = (pileIdx + 1) * spacing;
-      y = (isMobile ? 15 : 20) + Math.sin(pileIdx * (round === 6 ? 1 : 0)) * 10;
+      y = (isMobile ? 10 : 20) + Math.sin(pileIdx * (round === 6 ? 1 : 0)) * 10;
       rotate = Math.cos(pileIdx * (round === 6 ? 1 : 0)) * 10;
     } else {
-      const cols = isMobile ? 4 : 5;
+      const cols = isMobile ? (isSmallMobile ? 3 : 4) : 5;
       const r = Math.floor(pileIdx / cols);
       const c = pileIdx % cols;
       const actualCols = Math.min(totalPiles, cols);
       x = (c + 1) * (100 / (actualCols + 1));
-      y = (isMobile ? 10 : 15) + r * (isMobile ? 20 : 22);
+      y = (isMobile ? 8 : 15) + r * (isMobile ? 18 : 22);
     }
     return { x, y, rotate };
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-[65vh] md:h-[70vh] max-w-[100vw] mx-auto overflow-visible mt-2 md:mt-0">
+    <div ref={containerRef} className="relative w-full h-[52vh] md:h-[75vh] max-w-[100vw] mx-auto overflow-visible mt-2 md:mt-0 px-2 lg:px-4">
        {columns.map((pile, pIdx) => {
          const anchor = getAnchor(pIdx, columns.length);
          return (
@@ -874,11 +890,16 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
                  key={card.id}
                  className="absolute"
                  initial={{ opacity: 0, scale: 0, x: (pIdx - columns.length/2) * 50 }}
-                 animate={{ opacity: 1, scale: isMobile ? 1.05 : 1, x: 0, y: 0 }}
+                 animate={{ 
+                   opacity: 1, 
+                   scale: successCardId === card.id ? 1.2 : (isSmallMobile ? 0.9 : (isMobile ? 1.05 : 1)),
+                   x: errorCardId === card.id ? [0, -10, 10, -10, 10, 0] : 0,
+                   y: 0 
+                 }}
                  style={{
                    left: `${anchor.x}%`,
                    top: `${anchor.y}%`,
-                   transform: `translate(-50%, ${cIdx * (isMobile ? 12 : 20)}px) rotate(${anchor.rotate}deg)`,
+                   transform: `translate(-50%, ${cIdx * (isMobile ? 10 : 20)}px) rotate(${anchor.rotate}deg)`,
                    zIndex: 10 + (pIdx * 5) + cIdx
                  }}
                  transition={{ 
