@@ -72,32 +72,41 @@ export const Card = ({ card, onClick, isClickable = true, className, drag, onDra
         className
       )}
     >
-      <div className="absolute top-1 left-1 md:top-2 md:left-3 flex flex-col items-center leading-none z-10">
-        <span className={cn("text-base md:text-2xl font-black italic tracking-tighter", getTextColor())}>
+      <div className="absolute top-0.5 left-0.5 md:top-2 md:left-3 flex flex-col items-center leading-none z-10">
+        <span className={cn(
+          "font-black italic tracking-tighter", 
+          card.rank.length > 1 ? "text-[8px] md:text-2xl" : "text-[10px] md:text-2xl",
+          getTextColor()
+        )}>
           {card.rank}
         </span>
-        <div className="w-3 h-3 md:w-5 md:h-5 mt-0.5">
+        <div className="w-2 h-2 md:w-5 md:h-5 mt-[-2px] md:mt-0">
           {getSuitIcon()}
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center relative z-10">
-        <div className="w-6 h-6 md:w-16 md:h-16 opacity-10">
+        <div className="w-4 h-4 md:w-16 md:h-16 opacity-10">
            {getSuitIcon()}
         </div>
         <span className={cn(
-          "text-2xl md:text-5xl font-display italic tracking-tighter absolute z-10",
+          "font-display italic tracking-tighter absolute z-10",
+          card.rank.length > 1 ? "text-base md:text-5xl" : "text-lg md:text-5xl",
           getTextColor()
         )}>
           {card.rank}
         </span>
       </div>
 
-      <div className="absolute bottom-1 right-1 md:bottom-2 md:right-3 flex flex-col items-center leading-none rotate-180 z-10">
-        <span className={cn("text-base md:text-2xl font-black italic tracking-tighter", getTextColor())}>
+      <div className="absolute bottom-0.5 right-0.5 md:bottom-2 md:right-3 flex flex-col items-center leading-none rotate-180 z-10">
+        <span className={cn(
+          "font-black italic tracking-tighter", 
+          card.rank.length > 1 ? "text-[8px] md:text-2xl" : "text-[10px] md:text-2xl",
+          getTextColor()
+        )}>
           {card.rank}
         </span>
-        <div className="w-3 h-3 md:w-5 md:h-5 mt-0.5">
+        <div className="w-2 h-2 md:w-5 md:h-5 mt-[-2px] md:mt-0">
           {getSuitIcon()}
         </div>
       </div>

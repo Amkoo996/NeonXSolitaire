@@ -16,6 +16,7 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
   const [players, setPlayers] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const [roomStatus, setRoomStatus] = useState<'lobby' | 'playing'>('lobby');
+  const [zoomQR, setZoomQR] = useState(false);
   const shareUrl = `${window.location.origin}${window.location.pathname}?join=${roomId}`;
 
   useEffect(() => {
@@ -109,16 +110,48 @@ export const Lobby = ({ roomId, onStart, onQuit }: LobbyProps) => {
             <div className="space-y-6">
               <motion.div 
                 whileHover={{ scale: 1.02 }}
-                className="p-5 bg-white rounded-[2rem] flex flex-col items-center shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setZoomQR(true)}
+                className="p-5 bg-white rounded-[2rem] flex flex-col items-center shadow-[0_0_40px_rgba(255,255,255,0.1)] cursor-pointer group"
               >
-                <div className="p-2">
+                <div className="p-2 relative">
                   <QRCodeSVG value={shareUrl} size={160} level="M" />
+                  <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 flex items-center justify-center transition-colors rounded-lg">
+                    <Zap className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" size={32} />
+                  </div>
                 </div>
-                <div className="mt-3 flex items-center gap-2 text-slate-400 font-black text-[8px] uppercase tracking-widest">
+                <div className="mt-3 flex items-center gap-2 text-slate-400 font-black text-[8px] uppercase tracking-widest group-hover:text-blue-500 transition-colors">
                   <Globe size={10} />
-                  <span>External Protocol Link</span>
+                  <span>Tap to Magnify Link</span>
                 </div>
               </motion.div>
+
+              <AnimatePresence>
+                {zoomQR && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setZoomQR(false)}
+                    className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-6"
+                  >
+                    <motion.div
+                      initial={{ scale: 0.5, y: 20 }}
+                      animate={{ scale: 1, y: 0 }}
+                      exit={{ scale: 0.5, y: 20 }}
+                      className="bg-white p-8 rounded-[3rem] shadow-[0_0_100px_rgba(59,130,246,0.5)] flex flex-col items-center"
+                    >
+                      <QRCodeSVG value={shareUrl} size={280} level="H" />
+                      <p className="mt-8 text-slate-900 font-black text-xs uppercase tracking-widest text-center px-4">
+                        Scan with second device to synchronize
+                      </p>
+                      <button className="mt-8 px-8 py-4 bg-slate-900 text-white rounded-full font-black text-[10px] uppercase tracking-widest">
+                        Close Protocol
+                      </button>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="flex flex-col gap-3">
                  <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-2xl">

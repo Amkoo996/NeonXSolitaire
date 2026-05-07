@@ -25,7 +25,7 @@ export const ScorePop = ({ events }: ScorePopProps) => {
             className="absolute flex flex-col items-center justify-center pointer-events-none"
           >
             <span className={cn(
-              "text-5xl font-display italic tracking-tighter drop-shadow-2xl",
+              "text-3xl md:text-5xl font-display italic tracking-tighter drop-shadow-2xl",
               event.type === 'penalty' ? 'text-pink-500' : 
               event.type === 'bonus' ? 'text-cyan-400 text-glow' : 'text-blue-400'
             )}>

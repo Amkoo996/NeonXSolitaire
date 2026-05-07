@@ -6,7 +6,7 @@ import { deal, canMoveToFoundation } from '../utils/gameLogic';
 import { Card } from './Card';
 import { GAME_SETTINGS, PLAYER_COLORS } from '../constants';
 import { cn } from '../lib/utils';
-import { Trophy, RefreshCw, Timer, SkipForward, LogOut } from 'lucide-react';
+import { Trophy, RefreshCw, Timer, SkipForward, LogOut, Zap, Shield } from 'lucide-react';
 import { db, auth, OperationType, handleFirestoreError } from '../lib/firebase';
 import { doc, setDoc, getDoc, onSnapshot, collection, query, where, limit, serverTimestamp } from 'firebase/firestore';
 
@@ -522,11 +522,11 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   }, [state === null, isFinishing, showSummary]);
 
   if (!state) return null;
-
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const totalCardsLeft = state.columns.reduce((acc, col) => acc + col.length, 0);
 
   return (
-    <div ref={boardRef} className="w-full h-full bg-[#030303] relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(59,130,246,0.1)] border-white/5 select-none font-sans">
+    <div ref={boardRef} className="w-full h-[100dvh] bg-[#030303] relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(59,130,246,0.1)] border-white/5 select-none font-sans">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.15)_0%,transparent_60%)]" />
@@ -543,43 +543,44 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       <ScorePop events={state.scoreEvents} />
 
       {/* HUD: FIXED TOP */}
-      <div className="h-14 md:h-24 w-full flex items-center justify-between px-3 md:px-12 z-30 bg-[#030303] border-b border-white/5 shrink-0">
-        <div className="flex items-center gap-4 md:gap-8">
+      <div className="h-12 md:h-24 w-full flex items-center justify-between px-2 md:px-12 z-40 bg-[#030303] border-b border-white/5 shrink-0">
+        <div className="flex items-center gap-2 md:gap-8">
            <div className="flex flex-col">
-             <span className="text-[8px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Phase</span>
-             <span className="text-xl md:text-3xl font-display text-white italic">
-               {state.currentRound}<span className="text-blue-500 text-xs md:text-lg ml-1">/10</span>
+             <span className="text-[7px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Phase</span>
+             <span className="text-lg md:text-3xl font-display text-white italic">
+               {state.currentRound}<span className="text-blue-500 text-[10px] md:text-lg ml-0.5">/10</span>
              </span>
            </div>
            
-           <div className="h-6 md:h-12 w-px bg-white/10" />
-
+           <div className="h-4 md:h-12 w-px bg-white/10" />
+ 
            <div className="flex flex-col">
-             <span className="text-[8px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Score</span>
-             <span className="text-xl md:text-3xl font-display text-amber-500 italic tabular-nums">
+             <span className="text-[7px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Score</span>
+             <span className="text-lg md:text-3xl font-display text-amber-500 italic tabular-nums">
                {state.score.toLocaleString()}
              </span>
            </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-6">
-           <div className="flex flex-col items-center px-2 md:px-4 py-1 rounded-lg md:rounded-xl bg-white/5 border border-white/5">
+        <div className="flex items-center gap-1.5 md:gap-6">
+           <div className="flex flex-col items-center px-1.5 md:px-4 py-0.5 md:py-1 rounded-lg md:rounded-xl bg-white/5 border border-white/5">
               <span className="text-[8px] font-black uppercase text-blue-400/60 tracking-widest mb-1 hidden md:block">Diamonds</span>
               <div className="flex gap-0.5 md:gap-1">
                  {diamonds.map((d, i) => (
-                   <div key={i} className={cn("w-1.5 h-1.5 md:w-3 md:h-3 rotate-45 border border-blue-400/30", d ? "bg-cyan-400 shadow-[0_0_8px_cyan]" : "bg-white/5")} />
+                   <div key={i} className={cn("w-1 h-1 md:w-3 md:h-3 rotate-45 border border-blue-400/30", d ? "bg-cyan-400 shadow-[0_0_8px_cyan]" : "bg-white/5")} />
                  ))}
               </div>
            </div>
 
-           <div className="flex flex-col items-end w-20 md:w-40 relative">
-              <div className="flex items-center gap-2 relative">
-                 <Timer size={14} className={cn("transition-colors z-10", state.timer < 30 ? "text-red-500 animate-pulse" : "text-blue-400")} />
-                 <span className={cn("text-lg md:text-3xl font-display italic tabular-nums z-10", state.timer < 15 ? "text-red-500 scale-110 drop-shadow-[0_0_10px_red]" : state.timer < 30 ? "text-red-500" : "text-white")}>
+           <div className="flex flex-col items-end w-16 md:w-40 relative">
+              <div className="flex items-center gap-1 md:gap-2 relative">
+                 <Timer size={10} className={cn("transition-colors z-10 md:hidden", state.timer < 30 ? "text-red-500 animate-pulse" : "text-blue-400")} />
+                 <Timer size={14} className={cn("transition-colors z-10 hidden md:block", state.timer < 30 ? "text-red-500 animate-pulse" : "text-blue-400")} />
+                 <span className={cn("text-base md:text-3xl font-display italic tabular-nums z-10", state.timer < 15 ? "text-red-500 scale-110 drop-shadow-[0_0_10px_red]" : state.timer < 30 ? "text-red-500" : "text-white")}>
                     {isNaN(state.timer) ? "0:00" : `${Math.floor(state.timer / 60)}:${(state.timer % 60).toString().padStart(2, '0')}`}
                  </span>
               </div>
-              <div className="w-full h-1 bg-white/10 rounded-full mt-0.5 overflow-hidden">
+              <div className="w-full h-0.5 md:h-1 bg-white/10 rounded-full mt-0.5 overflow-hidden">
                  <motion.div 
                    initial={false}
                    animate={{ 
@@ -608,10 +609,10 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
               whileHover={{ scale: 1.1, boxShadow: "0 0 30px rgba(59,130,246,0.5)" }}
               whileTap={{ scale: 0.9 }}
               onClick={handleFinish}
-              className="px-12 py-6 bg-blue-600 text-white rounded-full font-black italic text-3xl shadow-2xl border-4 border-white/20 flex items-center gap-4 group"
+              className="px-6 py-3 md:px-12 md:py-6 bg-blue-600 text-white rounded-full font-black italic text-xl md:text-3xl shadow-2xl border-2 md:border-4 border-white/20 flex items-center gap-2 md:gap-4 group"
             >
               <span>{state.columns.every(p => p.length === 0) ? "COMPLETE PHASE" : "FINISH ROUND"}</span>
-              <SkipForward className="group-hover:translate-x-2 transition-transform" size={40} />
+              <SkipForward className="group-hover:translate-x-2 transition-transform" size={isMobile ? 24 : 40} />
             </motion.button>
           </motion.div>
         )}
@@ -620,19 +621,19 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-2xl"
+            className="absolute inset-0 z-[200] flex items-center justify-center bg-slate-950/90 backdrop-blur-2xl px-4"
           >
             <motion.div 
               initial={{ y: 50, scale: 0.9 }}
               animate={{ y: 0, scale: 1 }}
-              className="w-full max-w-2xl p-12 rounded-[4rem] bg-black/60 border-4 border-white/10 shadow-[0_0_100px_rgba(59,130,246,0.3)] text-center relative overflow-hidden"
+              className="w-full max-w-2xl p-4 md:p-12 rounded-3xl md:rounded-[4rem] bg-black/60 border-2 md:border-4 border-white/10 shadow-[0_0_100px_rgba(59,130,246,0.3)] text-center relative overflow-y-auto max-h-[95vh] no-scrollbar"
             >
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-              <h2 className="text-5xl font-black text-white italic mb-12 tracking-tighter uppercase underline decoration-blue-500/50 underline-offset-8">
+              <h2 className="text-2xl md:text-5xl font-black text-white italic mb-4 md:mb-12 tracking-tighter uppercase underline decoration-blue-500/50 underline-offset-8">
                  Phase {state.currentRound} Results
               </h2>
-              <div className="space-y-6 mb-12">
-                 <div className="flex justify-between items-center text-2xl font-bold bg-white/5 p-6 rounded-3xl border border-white/5">
+              <div className="space-y-2 md:space-y-6 mb-4 md:mb-12">
+                 <div className="flex justify-between items-center text-base md:text-2xl font-bold bg-white/5 p-3 md:p-6 rounded-xl md:rounded-3xl border border-white/5">
                     <span className="text-blue-400 uppercase tracking-widest italic">Base Score</span>
                     <span className="text-white font-mono tabular-nums">{state.score.toLocaleString()}</span>
                  </div>
@@ -640,10 +641,10 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                    initial={{ x: -20, opacity: 0 }}
                    animate={{ x: 0, opacity: 1 }}
                    transition={{ delay: 0.3 }}
-                   className="flex justify-between items-center text-2xl font-bold bg-white/5 p-6 rounded-3xl border border-white/5"
+                   className="flex justify-between items-center text-base md:text-2xl font-bold bg-white/5 p-3 md:p-6 rounded-xl md:rounded-3xl border border-white/5"
                  >
-                    <span className="text-cyan-400 uppercase tracking-widest italic flex items-center gap-3">
-                       <Trophy size={24} /> Diamond Bonus
+                    <span className="text-cyan-400 uppercase tracking-widest italic flex items-center gap-2 md:gap-3">
+                       <Trophy size={isMobile ? 16 : 24} /> Diamond Bonus
                     </span>
                     <CountingValue value={bonusCalculation.diamonds} delay={0.5} onTick={() => playBeep(660, 0.05)} />
                  </motion.div>
@@ -651,21 +652,21 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                    initial={{ x: -20, opacity: 0 }}
                    animate={{ x: 0, opacity: 1 }}
                    transition={{ delay: 0.6 }}
-                   className="flex justify-between items-center text-2xl font-bold bg-white/5 p-6 rounded-3xl border border-white/5"
+                   className="flex justify-between items-center text-base md:text-2xl font-bold bg-white/5 p-3 md:p-6 rounded-xl md:rounded-3xl border border-white/5"
                  >
-                    <span className="text-emerald-400 uppercase tracking-widest italic flex items-center gap-3">
-                       <Timer size={24} /> Time Bonus
+                    <span className="text-emerald-400 uppercase tracking-widest italic flex items-center gap-2 md:gap-3">
+                       <Timer size={isMobile ? 16 : 24} /> Time Bonus
                     </span>
                     <CountingValue value={bonusCalculation.time} delay={1} onTick={() => playBeep(880, 0.05)} />
                  </motion.div>
               </div>
-              <div className="h-px w-full bg-white/10 mb-8" />
-              <div className="flex justify-between items-center mb-12 px-6">
-                 <span className="text-3xl font-black text-blue-500 italic uppercase">Total Credits</span>
+              <div className="h-px w-full bg-white/10 mb-4 md:mb-8" />
+              <div className="flex justify-between items-center mb-6 md:mb-12 px-2 md:px-6">
+                 <span className="text-lg md:text-3xl font-black text-blue-500 italic uppercase">Total Credits</span>
                  <motion.span 
                    initial={{ scale: 0.5 }}
                    animate={{ scale: 1 }}
-                   className="text-6xl font-black text-white italic tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]"
+                   className="text-3xl md:text-6xl font-black text-white italic tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]"
                  >
                     <CountingValue value={bonusCalculation.total} delay={1.5} />
                  </motion.span>
@@ -674,7 +675,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleNextRound}
-                className="w-full py-8 bg-white text-slate-950 rounded-[2.5rem] font-black italic text-3xl shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all hover:bg-blue-400 hover:text-white"
+                className="w-full py-4 md:py-8 bg-white text-slate-950 rounded-xl md:rounded-[2.5rem] font-black italic text-lg md:text-3xl shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all hover:bg-blue-400 hover:text-white"
               >
                  INITIATE NEXT PHASE
               </motion.button>
@@ -684,7 +685,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       </AnimatePresence>
 
       {/* Main Game Area */}
-      <div className="flex-1 w-full flex flex-col items-center justify-center p-0 md:p-4 relative z-10 overflow-hidden">
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-0 md:p-4 relative z-10 overflow-y-auto no-scrollbar py-4">
           <div className="w-full h-full flex items-center justify-center">
              <FormationLayout 
                round={state.currentRound}
@@ -699,7 +700,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       </div>
 
       {/* Command Hub: FIXED BOTTOM */}
-      <div className="h-24 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-30 relative overflow-hidden shrink-0">
+      <div className="h-20 md:h-40 w-full bg-[#030303] border-t border-white/5 flex items-center justify-between px-4 md:px-20 z-40 relative overflow-hidden shrink-0">
           <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 to-transparent pointer-events-none" />
           
           {/* Multiplayer Feed */}
@@ -737,16 +738,20 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
               {/* Slots */}
               <div className="flex items-center gap-2 md:gap-4">
                   <div ref={foundationRef0} className="w-12 h-18 md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden">
-                     <AnimatePresence mode="popLayout">
+                     {/* Empty State Indicator */}
+                     <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                        <Zap size={32} className="text-white" />
+                     </div>
+                     <AnimatePresence>
                         {state.foundations[0].length > 0 && (
                           <motion.div
-                            key={state.foundations[0][state.foundations[0].length - 1].id}
+                            key={`f0-${state.foundations[0][state.foundations[0].length - 1].id}`}
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             className="w-full h-full"
                           >
                             <Card 
-                              card={state.foundations[0][state.foundations[0].length - 1]} 
+                              card={{...state.foundations[0][state.foundations[0].length - 1], isFaceUp: true}} 
                               isClickable={false}
                               className="w-full h-full border-0"
                             />
@@ -759,16 +764,20 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
                     "w-12 h-18 md:w-28 md:h-40 rounded-lg md:rounded-2xl border transition-all duration-500 flex items-center justify-center relative overflow-hidden",
                     state.slot2Unlocked ? "bg-white/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]" : "bg-black/40 border-white/5 grayscale"
                   )}>
-                     <AnimatePresence mode="popLayout">
+                     {/* Empty State Indicator */}
+                     <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                        {state.slot2Unlocked ? <Zap size={32} className="text-amber-500" /> : <Shield size={32} className="text-white" />}
+                     </div>
+                     <AnimatePresence>
                         {state.foundations[1].length > 0 ? (
                           <motion.div
-                            key={state.foundations[1][state.foundations[1].length - 1].id}
+                            key={`f1-${state.foundations[1][state.foundations[1].length - 1].id}`}
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             className="w-full h-full"
                           >
                             <Card 
-                              card={state.foundations[1][state.foundations[1].length - 1]} 
+                              card={{...state.foundations[1][state.foundations[1].length - 1], isFaceUp: true}} 
                               isClickable={false}
                               className="w-full h-full border-0"
                             />
@@ -856,12 +865,12 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
       const spacingX = isSmallMobile ? 10 : 12;
       const rowW = rows[r] * spacingX;
       x = (isLeft ? 25 : 75) + ((localIdx - pCount) * spacingX) - (rowW / 2) + (spacingX / 2);
-      y = (isMobile ? 8 : 15) + r * (isMobile ? 16 : 18);
+      y = (isMobile ? 8 : 15) + r * (isMobile ? 12 : 18);
     } else if (round === 4) {
       const angle = (pileIdx / totalPiles) * Math.PI * 2;
       const dist = (pileIdx % 2 === 0) ? (isSmallMobile ? 32 : (isMobile ? 38 : 42)) : (isSmallMobile ? 18 : (isMobile ? 22 : 25));
       x = 50 + Math.cos(angle) * dist;
-      y = (isMobile ? 42 : 50) + Math.sin(angle) * (dist * 0.7);
+      y = (isMobile ? 42 : 50) + Math.sin(angle) * (dist * (isMobile ? 0.55 : 0.7));
       rotate = (angle * 180) / Math.PI;
     } else if (round === 5 || round === 6) {
       const spacing = 100 / (totalPiles + 1);
@@ -869,18 +878,18 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
       y = (isMobile ? 10 : 20) + Math.sin(pileIdx * (round === 6 ? 1 : 0)) * 10;
       rotate = Math.cos(pileIdx * (round === 6 ? 1 : 0)) * 10;
     } else {
-      const cols = isMobile ? (isSmallMobile ? 3 : 4) : 5;
+      const cols = isMobile ? (isSmallMobile ? 4 : 5) : 5;
       const r = Math.floor(pileIdx / cols);
       const c = pileIdx % cols;
       const actualCols = Math.min(totalPiles, cols);
-      x = (c + 1) * (100 / (actualCols + 1));
-      y = (isMobile ? 8 : 15) + r * (isMobile ? 18 : 22);
+      x = (c + 0.5) * (100 / actualCols);
+      y = (isMobile ? 6 : 15) + r * (isMobile ? 12 : 22);
     }
     return { x, y, rotate };
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-[52vh] md:h-[75vh] max-w-[100vw] mx-auto overflow-visible mt-2 md:mt-0 px-2 lg:px-4">
+    <div ref={containerRef} className="relative w-full h-full max-w-[100vw] mx-auto overflow-visible mt-0 px-2 lg:px-4">
        {columns.map((pile, pIdx) => {
          const anchor = getAnchor(pIdx, columns.length);
          return (
