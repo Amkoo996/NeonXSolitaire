@@ -501,7 +501,7 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
       </AnimatePresence>
 
       {/* ==================== GAME AREA ==================== */}
-      <main className="flex-1 flex flex-col items-center justify-center p-2 md:p-6 overflow-hidden relative">
+      <main ref={boardRef} className="flex-1 flex flex-col items-center justify-center p-2 md:p-6 overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/20 to-transparent pointer-events-none" />
         
         <div className="w-full h-full max-w-4xl flex flex-col">
@@ -525,18 +525,18 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
             {/* Stock Pile */}
             <div className="flex flex-col items-center gap-1.5 transition-all">
               <div 
-                className="relative w-[50px] h-[70px] md:w-[80px] md:h-[112px] rounded-lg md:rounded-xl border bg-white shadow-xl flex items-center justify-center cursor-pointer active:scale-95 transition-transform overflow-hidden group"
+                className="relative w-[50px] h-[70px] md:w-[80px] md:h-[112px] rounded-lg md:rounded-xl border-2 bg-white shadow-xl flex items-center justify-center cursor-pointer active:scale-95 transition-transform overflow-hidden group"
                 onClick={handleStockClick}
-                style={{ borderColor: `${userColor}44` }}
+                style={{ borderColor: `${userColor}` }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50" />
+                <div className="absolute inset-0 bg-white" />
                 <div 
                   className="absolute inset-1.5 md:inset-2 border-2 border-dashed rounded-lg flex items-center justify-center"
-                  style={{ borderColor: `${userColor}22`, backgroundColor: `${userColor}05` }}
+                  style={{ borderColor: `${userColor}44`, backgroundColor: `${userColor}11` }}
                 >
                   <div 
                     className="font-black text-[6px] md:text-sm tracking-[0.1em] md:tracking-[0.2em] select-none text-center"
-                    style={{ color: userColor, opacity: 0.2 }}
+                    style={{ color: userColor, opacity: 0.4 }}
                   >
                     NEON
                   </div>
@@ -624,10 +624,40 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
       x = 50 + Math.cos(angle) * dist; y = (isMobile ? 40 : 50) + Math.sin(angle) * (dist * (isMobile ? 0.4 : 0.7)); rotate = (angle * 180) / Math.PI;
     } else if (round === 5 || round === 6) {
       x = (pileIdx + 1) * (100 / (totalPiles + 1)); y = (isMobile ? 15 : 20) + Math.sin(pileIdx * (round === 6 ? 1 : 0)) * 10; rotate = Math.cos(pileIdx * (round === 6 ? 1 : 0)) * 10;
+    } else if (round === 7) {
+      // Zig-zag formation
+      const isTop = pileIdx < totalPiles / 2;
+      const idxInRow = isTop ? pileIdx : (pileIdx - Math.floor(totalPiles / 2));
+      const spX = isMobile ? 18 : 22;
+      x = 50 + (idxInRow - (totalPiles / 4)) * spX;
+      y = (isTop ? 15 : 35) + (isMobile ? 5 : 10);
+      rotate = isTop ? 5 : -5;
+    } else if (round === 8) {
+      // V-Formation
+      const half = totalPiles / 2;
+      const distFromCenter = Math.abs(pileIdx - half);
+      x = 50 + (pileIdx - half) * (isMobile ? 12 : 16);
+      y = (isMobile ? 10 : 15) + (distFromCenter * (isMobile ? 6 : 8));
+      rotate = (pileIdx - half) * 5;
+    } else if (round === 9) {
+      // Double arc
+      const isOuter = pileIdx < totalPiles / 2;
+      const arcIdx = isOuter ? pileIdx : (pileIdx - Math.floor(totalPiles / 2));
+      const arcTotal = isOuter ? Math.floor(totalPiles/2) : (totalPiles - Math.floor(totalPiles/2));
+      const angle = (arcIdx / (arcTotal - 1)) * Math.PI - Math.PI;
+      const rx = isOuter ? (isMobile ? 38 : 45) : (isMobile ? 25 : 30);
+      const ry = isOuter ? (isMobile ? 25 : 30) : (isMobile ? 15 : 18);
+      x = 50 + Math.cos(angle) * rx;
+      y = (isMobile ? 35 : 40) + Math.sin(angle) * ry;
+      rotate = (angle * 180) / Math.PI + 90;
     } else {
-      const cols = isMobile ? (isSmallMobile ? 4 : 5) : 5;
-      const r = Math.floor(pileIdx / cols), c = pileIdx % cols;
-      x = (c + 0.5) * (100 / Math.min(totalPiles, cols)); y = (isMobile ? 10 : 15) + r * (isMobile ? 12 : 22);
+      // Round 10: X-formation or random-ish grid
+      const isD1 = pileIdx < totalPiles / 2;
+      const idx = isD1 ? pileIdx : (pileIdx - Math.floor(totalPiles / 2));
+      const offset = (idx - 2.5) * (isMobile ? 15 : 20);
+      x = 50 + (isD1 ? offset : -offset);
+      y = (isMobile ? 25 : 30) + Math.abs(offset) * 0.5;
+      rotate = isD1 ? 45 : -45;
     }
     return { x, y, rotate };
   };
@@ -640,7 +670,7 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
              return (
                <React.Fragment key={`p-${pIdx}`}>
                  {p.map((c, cIdx) => (
-                   <motion.div key={c.id} className="absolute" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: successCardId === c.id ? 1.2 : (isSmallMobile ? 0.95 : 1), x: errorCardId === c.id ? [0, -10, 10, -10, 10, 0] : 0 }} style={{ left: `${anchor.x}%`, top: `${anchor.y}%`, transform: `translate(-50%, ${cIdx * (isMobile ? 8 : 20)}px) rotate(${anchor.rotate}deg)`, zIndex: 10 + (pIdx * 5) + cIdx }} transition={{ type: "spring", damping: 25, stiffness: 200, delay: pIdx * 0.04 }}>
+                   <motion.div key={c.id} className="absolute" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: successCardId === c.id ? 1.2 : (isSmallMobile ? 0.95 : 1), x: errorCardId === c.id ? [0, -10, 10, -10, 10, 0] : (cIdx * 1) }} style={{ left: `${anchor.x}%`, top: `${anchor.y}%`, transform: `translate(-50%, ${cIdx * (isMobile ? 8 : 20)}px) rotate(${anchor.rotate + (cIdx * 0.5)}deg)`, zIndex: 10 + (pIdx * 5) + cIdx }} transition={{ type: "spring", damping: 25, stiffness: 200, delay: pIdx * 0.04 }}>
                      <Card 
                        card={c} 
                        onClick={() => onCardClick(c, pIdx, cIdx)} 
