@@ -7,6 +7,7 @@ import { ScoreModal } from './components/ScoreModal';
 import { Rankings } from './components/Rankings';
 import { Lobby } from './components/Lobby';
 import { GAME_SETTINGS, PLAYER_COLORS } from './constants';
+import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { RefreshCw, HelpCircle, Trophy, Home } from 'lucide-react';
 import { Tutorial } from './components/Tutorial';
@@ -206,46 +207,39 @@ export default function App() {
       <div className="fixed inset-0 z-0 bg-[radial-gradient(circle_at_center,#0f172a_0%,#020617_100%)]" />
       <div className="fixed inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '64px 64px' }} />
       
-      <header className="fixed top-0 left-0 right-0 h-16 z-50 bg-black/50 backdrop-blur-md border-b border-white/5">
-        <div className="container mx-auto px-4 h-full flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setGameState('menu')}
-              className="text-zinc-400 hover:text-white transition-colors p-2"
-              id="home-btn"
-            >
-              <Home className="w-6 h-6" />
-            </button>
-            <div className="hidden md:block">
-              <h1 className="text-xl font-black tracking-tighter text-white italic">
-                ELEVATE <span className="text-blue-500">GOLF</span>
-              </h1>
+      {gameState !== 'playing' && (
+        <header className="fixed top-0 left-0 right-0 h-16 z-50 bg-black/50 backdrop-blur-md border-b border-white/5">
+          <div className="container mx-auto px-4 h-full flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setGameState('menu')}
+                className="text-zinc-400 hover:text-white transition-colors p-2"
+                id="home-btn"
+              >
+                <Home className="w-6 h-6" />
+              </button>
+              <div className="hidden md:block">
+                <h1 className="text-xl font-black tracking-tighter text-white italic">
+                  ELEVATE <span className="text-blue-500">GOLF</span>
+                </h1>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 md:gap-4">
+              <button 
+                onClick={() => setShowTutorial(true)}
+                className="flex items-center gap-1 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full transition-all border border-white/5"
+                id="help-btn"
+              >
+                <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+                <span className="text-xs md:text-sm font-bold">Help</span>
+              </button>
             </div>
           </div>
+        </header>
+      )}
 
-          <div className="flex items-center gap-2 md:gap-4">
-            <button 
-              onClick={() => setShowTutorial(true)}
-              className="flex items-center gap-1 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full transition-all border border-white/5"
-              id="help-btn"
-            >
-              <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
-              <span className="text-xs md:text-sm font-bold">Help</span>
-            </button>
-
-            {gameState === 'playing' && (
-              <div className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 bg-zinc-900 border border-zinc-800 rounded-full">
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                <span className="text-xs md:text-sm font-bold text-white tracking-wider">
-                  {totalScore.toLocaleString()}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-hidden flex flex-col pt-16">
+      <main className={cn("flex-1 overflow-hidden flex flex-col", gameState !== 'playing' && "pt-16")}>
         <AnimatePresence>
         {showFixGuide && (
           <motion.div 

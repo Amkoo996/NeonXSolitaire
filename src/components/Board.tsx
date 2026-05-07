@@ -6,7 +6,7 @@ import { deal, canMoveToFoundation } from '../utils/gameLogic';
 import { Card } from './Card';
 import { GAME_SETTINGS, PLAYER_COLORS } from '../constants';
 import { cn } from '../lib/utils';
-import { Trophy, RefreshCw, Timer, SkipForward, LogOut, Zap, Shield } from 'lucide-react';
+import { Trophy, RefreshCw, Timer, SkipForward, LogOut, Zap, Shield, Settings } from 'lucide-react';
 import { db, auth, OperationType, handleFirestoreError } from '../lib/firebase';
 import { doc, setDoc, getDoc, onSnapshot, collection, query, where, limit, serverTimestamp } from 'firebase/firestore';
 
@@ -86,6 +86,8 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
     time: 0,
     total: 0
   });
+
+  const [userColor, setUserColor] = useState(PLAYER_COLORS[0]);
 
   const foundationRef0 = useRef<HTMLDivElement>(null);
   const foundationRef1 = useRef<HTMLDivElement>(null);
@@ -237,10 +239,12 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
 
     getDoc(doc(db, 'players', auth.currentUser.uid)).then(snap => {
       const data = snap.data();
+      const color = data?.color || PLAYER_COLORS[0];
+      setUserColor(color);
       setDoc(playerRef, {
         name: data?.name || auth.currentUser?.displayName || `PLAYER_${auth.currentUser?.uid.slice(-4).toUpperCase()}`,
         score: state.score,
-        color: data?.color || PLAYER_COLORS[0],
+        color: color,
         profileIcon: data?.profileIcon || '🐱',
         isReady: true,
         lastUpdate: serverTimestamp()
@@ -387,12 +391,11 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
     setConsecutiveMoves(0);
     setState(prev => {
       if (!prev) return null;
-      const hasBonus = prev.foundations[1].length > 0;
       return {
         ...prev,
         stock: ns,
-        foundations: [[...prev.foundations[0], top], prev.foundations[1]],
-        slot2Unlocked: hasBonus
+        foundations: [[...prev.foundations[0], top], []], // Slot 2 is cleared on new draw
+        slot2Unlocked: false
       };
     });
   };
@@ -422,52 +425,40 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
-    <div ref={boardRef} className="w-full h-[100dvh] bg-[#030303] relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(59,130,246,0.1)] border-white/5 select-none font-sans">
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.15)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-        <motion.div animate={{ opacity: [0.05, 0.15, 0.05] }} transition={{ duration: 4, repeat: Infinity }} className="absolute inset-0 bg-blue-500/5" />
-      </div>
-
+    <div className="flex flex-col h-[100dvh] bg-[#030712] overflow-hidden select-none relative">
       <ScorePop events={state.scoreEvents} />
 
-      {/* Header - 8-10% height on mobile */}
-      <header className="h-[8dvh] md:h-24 w-full flex items-center justify-between px-3 md:px-12 z-40 bg-[#030303]/80 backdrop-blur-md border-b border-white/5 shrink-0">
-        <div className="flex items-center gap-3 md:gap-8">
-           <div className="flex flex-col">
-             <span className="text-[7px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Phase</span>
-             <span className="text-sm md:text-3xl font-display text-white italic">{state.currentRound}<span className="text-blue-500 text-[10px] md:text-lg ml-0.5">/10</span></span>
-           </div>
-           <div className="h-4 md:h-12 w-px bg-white/10" />
-           <div className="flex flex-col">
-             <span className="text-[7px] md:text-[10px] font-black uppercase text-blue-400/60 tracking-[0.2em]">Score</span>
-             <span className="text-sm md:text-3xl font-display text-amber-500 italic tabular-nums">{state.score.toLocaleString()}</span>
-           </div>
-        </div>
+      {/* ==================== HEADER ==================== */}
+      <header className="shrink-0 h-14 md:h-16 border-b border-cyan-500/30 bg-black/80 backdrop-blur-md z-50 flex items-center px-4">
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-cyan-400 font-black text-xl tracking-tighter">NEONX</div>
+            <div>
+              <span className="text-white font-bold">PHASE</span>
+              <span className="text-cyan-400 font-mono ml-1.5 text-2xl">{state.currentRound}</span>
+              <span className="text-white/40 font-mono">/10</span>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2 md:gap-6">
-           <div className="hidden sm:flex flex-col items-center px-1.5 md:px-4 py-0.5 md:py-1 rounded-lg md:rounded-xl bg-white/5 border border-white/5">
-              <div className="flex gap-0.5 md:gap-1">
-                 {diamonds.map((d, i) => (
-                   <div key={i} className={cn("w-1 h-1 md:w-3 md:h-3 rotate-45 border border-blue-400/30", d ? "bg-cyan-400 shadow-[0_0_8px_cyan]" : "bg-white/5")} />
-                 ))}
-              </div>
-           </div>
-           
-           <div className="flex flex-col items-end w-12 md:w-40 relative">
-              <div className="flex items-center gap-1 md:gap-2 relative">
-                 <span className={cn("text-xs md:text-3xl font-display italic tabular-nums z-10", state.timer < 15 ? "text-red-500 animate-pulse" : "text-white")}>
-                    {isNaN(state.timer) ? "0:00" : `${Math.floor(state.timer / 60)}:${(state.timer % 60).toString().padStart(2, '0')}`}
-                 </span>
-              </div>
-              <div className="w-full h-0.5 md:h-1 bg-white/10 rounded-full mt-0.5 overflow-hidden">
-                 <motion.div initial={false} animate={{ width: `${(state.timer / initialTime) * 100}%`, backgroundColor: state.timer < 30 ? "#ef4444" : "#3b82f6" }} className="h-full" />
-              </div>
-           </div>
+          <div className="flex items-center gap-5 font-mono">
+            <div className="flex items-center gap-1.5 text-amber-400">
+              <Timer className="w-4 h-4" />
+              <span className="tabular-nums text-lg font-bold">
+                {isNaN(state.timer) ? "0:00" : `${Math.floor(state.timer / 60)}:${(state.timer % 60).toString().padStart(2, '0')}`}
+              </span>
+            </div>
+            
+            <div className="text-white text-lg font-bold tabular-nums">
+              {state.score.toLocaleString()}
+            </div>
+          </div>
 
-           <button onClick={onMenu} className="w-7 h-7 md:w-12 md:h-12 rounded-lg bg-white/5 text-slate-400 flex items-center justify-center hover:bg-red-500/20 border border-white/10">
-              <LogOut size={14} />
-           </button>
+          <button 
+            onClick={onMenu}
+            className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white active:scale-90 transition-all"
+          >
+            <Settings size={22} />
+          </button>
         </div>
       </header>
 
@@ -509,74 +500,96 @@ export const Board = ({ onGameOver, onRoundOver, onMenu, currentRound, roomId, i
         )}
       </AnimatePresence>
 
-      {/* Game Area - 60-65% height on mobile */}
-      <div className="flex-1 w-full flex flex-col items-center justify-center relative z-10 overflow-hidden py-2 px-2 md:py-4 min-h-0">
-          <div className="w-full h-full flex items-center justify-center relative touch-none max-w-md mx-auto">
-             <FormationLayout round={state.currentRound} columns={state.columns} onCardClick={handleCardClick} onDragEnd={handleDragEnd} boardRef={boardRef} errorCardId={errorCardId} successCardId={successCardId} />
+      {/* ==================== GAME AREA ==================== */}
+      <main className="flex-1 flex flex-col items-center justify-center p-2 md:p-6 overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/20 to-transparent pointer-events-none" />
+        
+        <div className="w-full h-full max-w-4xl flex flex-col">
+          {/* TABLEAU / FORMATION */}
+          <div className="flex-1 w-full flex items-center justify-center relative">
+             <FormationLayout 
+               round={state.currentRound} 
+               columns={state.columns} 
+               onCardClick={handleCardClick} 
+               onDragEnd={handleDragEnd} 
+               boardRef={boardRef} 
+               errorCardId={errorCardId} 
+               successCardId={successCardId}
+               userColor={userColor}
+             />
           </div>
-      </div>
 
-      {/* Control Panel - Guaranteed visibility on mobile */}
-      <footer className="h-[22dvh] min-h-[140px] md:h-40 w-full bg-[#030303]/95 backdrop-blur-xl border-t border-white/10 flex items-center justify-between px-3 md:px-20 z-50 relative shrink-0">
-          <div className="hidden md:flex absolute left-4 top-0 bottom-0 flex-col justify-center pointer-events-none">
-             {state.opponents.slice(0, 3).map(opp => (
-               <div key={opp.id} className="flex items-center gap-2 mb-1 text-[8px] font-black text-white/40 uppercase tracking-widest">
-                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: opp.color || '#fff' }} /> {opp.name}: {opp.score}
-               </div>
-             ))}
-          </div>
-
-          <div className="flex items-center gap-4 md:gap-12 mx-auto w-full max-w-sm justify-center py-2">
-            <div className="flex items-center gap-3 md:gap-8 justify-center">
-              {/* Stock */}
-              <div className="flex flex-col items-center gap-1">
-                <div className="relative group cursor-pointer active:scale-95 transition-transform" onClick={handleStockClick}>
-                    <Card card={{ id: 'back', suit: 'hearts', rank: 'A', value: 1, isFaceUp: false }} isClickable={false} className="shadow-[0_0_20px_rgba(37,99,235,0.3)] ring-1 ring-blue-500/20" />
-                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center border-2 border-[#030303] shadow-lg">
-                      <span className="text-[10px] md:text-sm font-black text-white tabular-nums">{state.stock.length}</span>
-                    </div>
+          {/* Bottom Control Bar: Stock and Foundations grouped together */}
+          <div className="flex items-center justify-center gap-8 py-8 shrink-0 mt-auto">
+            
+            {/* Stock Pile */}
+            <div className="flex flex-col items-center gap-1.5 transition-all">
+              <div 
+                className="relative w-[50px] h-[70px] md:w-[80px] md:h-[112px] rounded-lg md:rounded-xl border bg-white shadow-xl flex items-center justify-center cursor-pointer active:scale-95 transition-transform overflow-hidden group"
+                onClick={handleStockClick}
+                style={{ borderColor: `${userColor}44` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50" />
+                <div 
+                  className="absolute inset-1.5 md:inset-2 border-2 border-dashed rounded-lg flex items-center justify-center"
+                  style={{ borderColor: `${userColor}22`, backgroundColor: `${userColor}05` }}
+                >
+                  <div 
+                    className="font-black text-[6px] md:text-sm tracking-[0.1em] md:tracking-[0.2em] select-none text-center"
+                    style={{ color: userColor, opacity: 0.2 }}
+                  >
+                    NEON
+                  </div>
                 </div>
-              </div>
-
-              {/* Foundations */}
-              <div className="flex items-center gap-2 md:gap-6">
-                  <div className="flex flex-col items-center gap-1">
-                    <div ref={foundationRef0} className="w-[48px] h-[70px] sm:w-[58px] sm:h-[82px] md:w-28 md:h-40 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden group shadow-inner">
-                       <div className="absolute inset-0 bg-blue-500/5 transition-colors" />
-                       <AnimatePresence mode="popLayout">
-                          {state.foundations[0].length > 0 && (
-                            <motion.div key={`f0-${state.foundations[0][state.foundations[0].length - 1].id}`} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full h-full relative z-10">
-                              <Card card={{...state.foundations[0][state.foundations[0].length - 1], isFaceUp: true}} isClickable={false} className="w-full h-full border-0 rounded-none bg-transparent" />
-                            </motion.div>
-                          )}
-                       </AnimatePresence>
-                    </div>
+                {state.stock.length > 0 && (
+                  <div 
+                    className="absolute top-1 right-1 w-4 h-4 md:w-7 md:h-7 text-white rounded-full flex items-center justify-center border border-white/20 shadow-lg font-bold text-[8px] md:text-xs z-20"
+                    style={{ backgroundColor: userColor }}
+                  >
+                    {state.stock.length}
                   </div>
-
-                  <div className="flex flex-col items-center gap-1">
-                    <div ref={foundationRef1} className={cn("w-[48px] h-[70px] sm:w-[58px] sm:h-[82px] md:w-28 md:h-40 rounded-lg md:rounded-2xl border flex items-center justify-center relative overflow-hidden transition-all duration-500", state.slot2Unlocked ? "bg-amber-500/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]" : "bg-black/40 border-white/5 grayscale")}>
-                       <AnimatePresence mode="popLayout">
-                          {state.foundations[1].length > 0 ? (
-                            <motion.div key={`f1-${state.foundations[1][state.foundations[1].length - 1].id}`} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full h-full relative z-10">
-                              <Card card={{...state.foundations[1][state.foundations[1].length - 1], isFaceUp: true}} isClickable={false} className="w-full h-full border-0 rounded-none bg-transparent" />
-                            </motion.div>
-                          ) : (
-                            <div className="text-white/10 flex flex-col items-center gap-1">
-                              {state.slot2Unlocked ? <Zap size={16} className="text-amber-500 animate-pulse" /> : <Shield size={16} className="opacity-20" />}
-                            </div>
-                          )}
-                       </AnimatePresence>
-                    </div>
-                  </div>
+                )}
+                {/* Visual stack effect */}
+                <div className="absolute -bottom-1 -right-1 w-full h-full bg-slate-200/20 rounded-xl -z-10 translate-x-1 translate-y-1" />
+                <div className="absolute -bottom-2 -right-2 w-full h-full bg-slate-200/10 rounded-xl -z-20 translate-x-2 translate-y-2" />
               </div>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">STOCK</span>
+            </div>
+
+            {/* Foundations (Grouped) */}
+            <div className="flex items-center gap-4">
+              {state?.foundations.map((foundation, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-1.5">
+                  <div
+                    ref={idx === 0 ? foundationRef0 : foundationRef1}
+                    className={cn(
+                      "w-[50px] h-[70px] md:w-[80px] md:h-[112px] border-2 rounded-lg md:rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 shadow-inner",
+                      foundation.length > 0 ? "bg-white border-white shadow-lg" : "bg-black/20 border-white/5 border-dashed"
+                    )}
+                  >
+                    {foundation.length > 0 ? (
+                      <Card card={foundation[foundation.length - 1]} isClickable={false} className="w-full h-full border-0 rounded-none" playerColor={userColor} />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-white/5 opacity-50">
+                        {idx === 0 ? <Trophy size={20} /> : <Zap size={20} />}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">{idx === 0 ? 'BASE' : 'NEON'}</span>
+                </div>
+              ))}
             </div>
           </div>
-      </footer>
+        </div>
+      </main>
+
+      {/* Minimalistic status bar instead of footer */}
+      <div className="h-4 bg-black/40 w-full" />
     </div>
   );
 };
 
-const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, boardRef, errorCardId, successCardId }: any) => {
+const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, boardRef, errorCardId, successCardId, userColor }: any) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const isSmallMobile = typeof window !== 'undefined' && window.innerWidth < 400;
@@ -591,11 +604,11 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
       const spX = isSmallMobile ? 14 : (isMobile ? 16 : 15);
       const rowW = rows[r] * spX;
       x = 50 + (cInR * spX) - (rowW / 2) + (spX / 2);
-      y = (isMobile ? 5 : 10) + r * (isMobile ? 10 : 15);
+      y = (isMobile ? 12 : 18) + r * (isMobile ? 10 : 15);
     } else if (round === 2) {
-      const angle = (pileIdx / (totalPiles - 1)) * Math.PI - Math.PI;
-      const rx = isSmallMobile ? 32 : (isMobile ? 38 : 45), ry = isSmallMobile ? 20 : (isMobile ? 25 : 30);
-      x = 50 + Math.cos(angle) * rx; y = (isMobile ? 45 : 52) + Math.sin(angle) * ry; rotate = (angle * 180) / Math.PI + 90;
+      const angle = (pileIdx / (totalPiles - 1)) * (Math.PI * 0.7) - (Math.PI * 0.85);
+      const rx = isSmallMobile ? 32 : (isMobile ? 36 : 40), ry = isSmallMobile ? 20 : (isMobile ? 24 : 28);
+      x = 50 + Math.cos(angle) * rx; y = (isMobile ? 40 : 45) + Math.sin(angle) * ry; rotate = (angle * 180) / Math.PI + 90;
     } else if (round === 3) {
       const isL = pileIdx < totalPiles / 2;
       const lIdx = isL ? pileIdx : pileIdx - totalPiles / 2;
@@ -620,7 +633,7 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full max-w-lg mx-auto overflow-hidden px-1">
+    <div ref={containerRef} className="relative w-full h-full max-w-4xl mx-auto overflow-hidden px-1">
        <div className="relative w-full h-full">
           {columns.map((p, pIdx) => {
              const anchor = getAnchor(pIdx, columns.length);
@@ -628,7 +641,24 @@ const FormationLayout = React.memo(({ round, columns, onCardClick, onDragEnd, bo
                <React.Fragment key={`p-${pIdx}`}>
                  {p.map((c, cIdx) => (
                    <motion.div key={c.id} className="absolute" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: successCardId === c.id ? 1.2 : (isSmallMobile ? 0.95 : 1), x: errorCardId === c.id ? [0, -10, 10, -10, 10, 0] : 0 }} style={{ left: `${anchor.x}%`, top: `${anchor.y}%`, transform: `translate(-50%, ${cIdx * (isMobile ? 8 : 20)}px) rotate(${anchor.rotate}deg)`, zIndex: 10 + (pIdx * 5) + cIdx }} transition={{ type: "spring", damping: 25, stiffness: 200, delay: pIdx * 0.04 }}>
-                     <Card card={c} onClick={() => onCardClick(c, pIdx, cIdx)} isClickable={c.isFaceUp && cIdx === p.length - 1} className={cn("transition-all duration-300", (c.isFaceUp && cIdx === p.length - 1) ? "shadow-[0_0_20px_rgba(59,130,246,0.3)] ring-1 ring-blue-500/30 cursor-pointer" : "brightness-[0.7] opacity-95")} drag={c.isFaceUp && cIdx === p.length - 1} onDragEnd={(e, info) => onDragEnd(e, info, c, pIdx, cIdx)} dragConstraints={boardRef} />
+                     <Card 
+                       card={c} 
+                       onClick={() => onCardClick(c, pIdx, cIdx)} 
+                       isClickable={c.isFaceUp && cIdx === p.length - 1} 
+                       className={cn(
+                         "transition-all duration-300", 
+                         (c.isFaceUp && cIdx === p.length - 1) ? "ring-1 ring-opacity-30 cursor-pointer" : "brightness-[0.9] opacity-100"
+                       )} 
+                       style={(c.isFaceUp && cIdx === p.length - 1) ? { 
+                         boxShadow: `0 0 20px ${userColor}33`,
+                         borderColor: `${userColor}44`,
+                         backgroundColor: `#fff`
+                       } : {}}
+                       drag={c.isFaceUp && cIdx === p.length - 1} 
+                       onDragEnd={(e, info) => onDragEnd(e, info, c, pIdx, cIdx)} 
+                       dragConstraints={boardRef} 
+                       playerColor={userColor}
+                     />
                    </motion.div>
                  ))}
                </React.Fragment>
